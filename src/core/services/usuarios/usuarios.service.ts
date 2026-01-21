@@ -34,11 +34,6 @@ export class UsuariosService {
       throw new BussinesRuleException('El correo ya está registrado', HttpStatus.BAD_REQUEST);
     }
 
-    const existeUsername = await this.repository.findByUsername(dtoUsuario.username);
-    if (existeUsername) {
-      throw new BussinesRuleException('El username ya está en uso', HttpStatus.BAD_REQUEST);
-    }
-
     const salt= await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(dtoUsuario.password, salt);
 

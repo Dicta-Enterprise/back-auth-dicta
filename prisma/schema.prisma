@@ -138,7 +138,7 @@ model rol {
 model usuarios {
   id                Int       @id @default(autoincrement())
   username          String   @db.VarChar(50)
-  email             String   @db.VarChar(50)
+  email             String   @db.VarChar(150)
   password          String   @db.VarChar(255)
   fechadecreacion   DateTime?
   estado            Int?      @db.SmallInt

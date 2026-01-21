@@ -26,10 +26,5 @@ export class UsuarioPrismaRepository implements UsuarioRepository {
     return data ? Usuario.fromPrisma(data) : null;
   }
 
-  async findByUsername(username: string): Promise<Usuario | null> {
-    const data = await this.prisma.usuarios.findFirst({
-      where: { username },
-    });
-    return data ? Usuario.fromPrisma(data) : null;
-  }
+  
 }

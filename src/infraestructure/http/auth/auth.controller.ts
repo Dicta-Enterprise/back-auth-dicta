@@ -15,13 +15,18 @@ export class AuthController {
     @ApiBody({ type: dto.RegisterUserDto })
     @ApiResponse({ status: 201, description: 'Usuario registrado correctamente' })
     @ApiResponse({ status: 400, description: 'Datos inválidos o usuario ya existe' })
-    async register(@Body() dtoCurso: dto.RegisterUserDto) {
-        const result = await this.registerUseCase.execute(dtoCurso);
+    async register(@Body() dtoUsuario: dto.RegisterUserDto) {
+        const result = await this.registerUseCase.execute(dtoUsuario);
         if (result.isFailure) {
             throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
         }
+        const usuario= result.getValue();
+
         return{
-            data: result.getValue(),
+            data: {
+                username: usuario.username,
+                email: usuario.email
+            },
             message: 'Usuario registrado'
         };
         
