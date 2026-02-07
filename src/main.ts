@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { envs } from './config/envs';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
+import { apiReference } from '@scalar/nestjs-api-reference';
 
 async function bootstrap() {
   const logger = new Logger('API');
@@ -31,12 +31,19 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/swagger', app, document);
 
-
+  app.use(
+    '/api/scalar',
+    apiReference({
+      content: document,
+    }),
+  );
   await app.listen(envs.port);
 
-  logger.log(`api corriendo en el puerto ${envs.port}`);
+   logger.log(`API corriendo en http://localhost:${envs.port}/api`);
+  logger.log(`Swagger: http://localhost:${envs.port}/api/swagger`);
+  logger.log(`Scalar:  http://localhost:${envs.port}/api/scalar`);
   logger.log(`api corriendo en la bd ${envs.databaseUrl}`);
 }
 bootstrap();
