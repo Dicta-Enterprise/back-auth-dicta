@@ -1,4 +1,4 @@
-import { Usuario } from '../entities/usuario.enity';
+import { Usuario } from '../entities/auth/usuario.enity';
 
 
 export interface UsuarioRepository {

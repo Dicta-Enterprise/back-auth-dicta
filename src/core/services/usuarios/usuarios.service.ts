@@ -3,7 +3,7 @@ import { USUARIO_REPOSITORY } from '../../constants/constants';
 import { UsuarioRepository } from '../../repositories/usuario.repository';
 import { ValidatorService } from 'src/shared/application/validation/validator.service';
 import { RegisterUserDto } from 'src/application/dto/register-user.dto';
-import { Usuario } from '../../entities/usuario.enity';
+import { Usuario } from '../../entities/auth/usuario.enity';
 import { BussinesRuleException } from 'src/shared/domain/exceptions/business-rule.exception';
 import * as bcrypt from 'bcrypt';
 
@@ -47,5 +47,9 @@ export class UsuariosService {
     );
 
     return this.repository.create(usuario);
+  }
+
+  async findByEmail(email: string): Promise<Usuario> {
+    return this.repository.findByEmail(email);
   }
 }
