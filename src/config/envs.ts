@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import * as joi from 'joi';
+import ms from 'ms';
 interface EnvVars {
   PORT: number;
   DATABASE_URL: string;
@@ -23,4 +24,8 @@ const envVars: EnvVars = value;
 export const envs = {
   port: envVars.PORT,
   databaseUrl: envVars.DATABASE_URL,
+  jwtSecret: process.env.JWT_SECRET as string,
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN as ms.StringValue,
 };
+
+
