@@ -38,8 +38,8 @@ export class RegisterUserDto {
   @IsNotEmpty({ message: 'La contraseña es requerida' })
   @MinLength(8, { message: 'La contraseña debe tener mínimo 8 caracteres' })
   @IsStrongPassword(
-    { minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 },
-    { message: 'Contraseña débil: usa mayúscula, minúscula, número y símbolo' },
+    { minLength: 8, minLowercase: 0, minUppercase: 0, minNumbers: 1, minSymbols: 0 },
+    { message: 'Contraseña débil: usa al menos un número' },
   )
   password: string;
 

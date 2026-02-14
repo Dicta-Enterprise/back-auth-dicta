@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
 import { RegisterUserUseCase } from 'src/application/use-cases/register-user.use-case';
 import { RegisterUserDto } from 'src/application/dto/register-user.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -7,6 +7,8 @@ import { LoginDto } from 'src/application/dto/login.dto';
 import { jwtAuthGuard } from '../../../shared/guard/jwtAuth.guard';
 import { JwtPayload } from 'src/core/services/auth/jwtPayload';
 import { CurrentUser } from 'src/shared/decorator/current-user.decorator';
+import { Response } from 'express';
+
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -51,11 +53,24 @@ export class AuthController {
     @Post('login')
     @ApiOperation({ summary: 'Iniciar sesión de un usuario' })
     @ApiBody({ type: LoginDto })
-    async login(@Body() dtoLogin: LoginDto) {
-        return await this.loginUseCase.execute(dtoLogin);
+    async login(@Body() dtoLogin: LoginDto, @Res({ passthrough:true}) res: Response) {
+        const result = await this.loginUseCase.execute(dtoLogin);
+        res.cookie('accessToken', result.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+        });
+        return {
+            message: 'Inicio de sesión exitoso'
+        };
     }
 
-    
+    @Post('logout')
+    logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('accessToken'); 
+    return { message: 'Sesión cerrada correctamente' };
+    }
+
     @UseGuards(jwtAuthGuard)
     @Get('profile')
     profile(@CurrentUser() user: JwtPayload) {

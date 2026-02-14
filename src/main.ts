@@ -4,6 +4,8 @@ import { envs } from './config/envs';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import * as cookieParser from 'cookie-parser';
+
 
 async function bootstrap() {
   const logger = new Logger('API');
@@ -11,6 +13,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
 
+  app.use(cookieParser());
+  
   app.enableCors({
     origin: '*',
     methods: 'GET,PUT,POST,DELETE,PATCH',
@@ -22,7 +26,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-
+  
   const config = new DocumentBuilder()
     .setTitle('API Universo Dicta')
     .setDescription('API de la aplicacion de universo dicta')
