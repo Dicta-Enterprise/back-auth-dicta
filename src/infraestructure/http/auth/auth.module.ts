@@ -14,11 +14,15 @@ import { envs } from 'src/config/envs';
 import { LoginUserUseCase } from 'src/application/use-cases/login-user.use-case';
 import { AuthService } from 'src/core/services/auth/auth.service';
 import { JwtStrategy } from '../../../core/services/auth/jwtStrategy.service';
+import { GoogleStrategy } from 'src/core/services/auth/google.strategy';
+import { PassportModule } from '@nestjs/passport';
+import { GoogleUseCase } from 'src/application/use-cases/google-use.case';
 
 @Module({
   imports: [
     SharedModule,
     PrismaModule,
+    PassportModule,
     JwtModule.register({
       secret: envs.jwtSecret,
       signOptions: {
@@ -36,7 +40,9 @@ import { JwtStrategy } from '../../../core/services/auth/jwtStrategy.service';
     RegisterUserUseCase,
     LoginUserUseCase,
     AuthService,
-    JwtStrategy 
+    JwtStrategy,
+    GoogleStrategy,
+    GoogleUseCase
   ],
 })
 export class AuthModule {}

@@ -12,6 +12,7 @@ export class UsuarioPrismaRepository implements UsuarioRepository {
     data: {
         username: usuario.username,
         email: usuario.email,
+        auth_provider: usuario.authProvider,
         password: usuario.password,
         estado: usuario.estado,
         fechadecreacion: usuario.fechadecreacion

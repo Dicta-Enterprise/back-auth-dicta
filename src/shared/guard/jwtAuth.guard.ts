@@ -11,7 +11,7 @@ export class jwtAuthGuard extends AuthGuard('jwt') {
         }
 
         if (err || !user) {
-            throw err || new Error('No se ha podido autenticar al usuario');
+            throw new UnauthorizedException('No autenticado');
         }
         return user;
     }
