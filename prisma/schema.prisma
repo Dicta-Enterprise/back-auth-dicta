@@ -148,4 +148,5 @@ model usuarios {
   perfil            perfil[]
   persona           persona[]
   rol               rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  googleId String? @unique
 }

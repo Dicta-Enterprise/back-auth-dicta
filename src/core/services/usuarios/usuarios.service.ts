@@ -51,9 +51,9 @@ export class UsuariosService {
   }
     async crearUsuarioGoogle(dto: GoogleLoginDto): Promise<Usuario> {
 
-    const existeEmail = await this.repository.findByEmail(dto.email);
-    if (existeEmail) {
-      return existeEmail; 
+    const existeGoogleId = await this.repository.findByGoogleId(dto.googleId);
+    if (existeGoogleId) {
+      return existeGoogleId; 
     }
 
     const usuario = new Usuario(
@@ -63,7 +63,8 @@ export class UsuariosService {
       null,
       1,
       new Date(),
-      'GOOGLE'
+      'GOOGLE',
+      dto.googleId
     );
 
     return this.repository.create(usuario);
@@ -71,5 +72,8 @@ export class UsuariosService {
 
   async findByEmail(email: string): Promise<Usuario> {
     return this.repository.findByEmail(email);
+  }
+   async findByGoogleId(googleId: string): Promise<Usuario> {
+    return this.repository.findByGoogleId(googleId);
   }
 }

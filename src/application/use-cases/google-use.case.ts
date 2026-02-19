@@ -16,7 +16,7 @@ export class GoogleUseCase {
       const usuario = await this.usuarioService.crearUsuarioGoogle(dto);
       const accessToken = this.authService.generateAccessToken({
         id: usuario.id,
-        email: usuario.email,
+        email: usuario.email
       });
 
       return Result.ok(accessToken);

@@ -94,22 +94,20 @@ export class AuthController {
     @Req() req: Request & { user: GoogleLoginDto },
     @Res() res: Response,
     ) {
-    const { email, username } = req.user;
-
-    const result = await this.googleUseCase.execute({ email, username });
-
-    if (result.isFailure) {
-        throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
+    try {
+        const result = await this.googleUseCase.execute(req.user);
+        if (result.isFailure) {
+            throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
+        }
+        const token = result.getValue();
+        res.cookie('accessToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+        });
+        return res.redirect(envs.frontendUrl);
+    }catch {
+        throw new HttpException('Error al iniciar sesión con Google', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    const token = result.getValue();
-
-    res.cookie('accessToken', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-    });
-
-    return res.redirect(envs.frontendUrl);
     }
 }

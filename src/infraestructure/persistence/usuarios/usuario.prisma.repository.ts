@@ -15,7 +15,8 @@ export class UsuarioPrismaRepository implements UsuarioRepository {
         auth_provider: usuario.authProvider,
         password: usuario.password,
         estado: usuario.estado,
-        fechadecreacion: usuario.fechadecreacion
+        fechadecreacion: usuario.fechadecreacion,
+        googleId: usuario.googleId
     }
     });
     return Usuario.fromPrisma(data);
@@ -27,5 +28,10 @@ export class UsuarioPrismaRepository implements UsuarioRepository {
     return data ? Usuario.fromPrisma(data) : null;
   }
 
-  
+  async findByGoogleId(googleId: string) {
+  const data=await this.prisma.usuarios.findFirst({
+    where: { googleId },
+  });
+  return data ? Usuario.fromPrisma(data) : null;
+}
 }
