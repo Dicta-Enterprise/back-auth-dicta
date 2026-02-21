@@ -15,6 +15,9 @@ async execute(dto: LoginDto) {
     if (!usuario) {
         throw new UnauthorizedException('Credenciales inválidas');
     }
+    if (usuario.authProvider === 'GOOGLE') {
+    throw new UnauthorizedException('Credenciales inválidas');
+    }
     const isPasswordValid = await bcrypt.compare(dto.password, usuario.password);
     if (!isPasswordValid) {
         throw new UnauthorizedException('Credenciales inválidas');

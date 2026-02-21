@@ -15,7 +15,7 @@ export class LoginDto {
     @ApiProperty({
     example: 'Hola1234!',
     description:
-      'Contraseña (mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo)',
+      'Contraseña (mínimo 8 caracteres y un número)',
     minLength: 8,
     })
     @IsNotEmpty({ message: 'La contraseña es requerida' })

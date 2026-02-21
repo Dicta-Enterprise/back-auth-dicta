@@ -28,6 +28,18 @@ Ejecutar `npx prisma db pull` para traer todas las tablas de PostgreSQL y manten
 
 Ejecutar `npx prisma generate` para poder iniciar con las ultimas atualizaciones el cliente de Prisma
 
+## OAuth Google
+
+Configurar cliente OAuth en Google Cloud y agregar:
+
+- http://localhost:3000
+- http://localhost:3000/api/auth/google/callback
+
+Ver credenciales en:
+Google Cloud Console → APIs & Services → Credentials → Create OAuth Client ID
+Agregar credenciales en .env:
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 
 
 ## 4. Cargar a GitHub

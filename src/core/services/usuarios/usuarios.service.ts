@@ -6,6 +6,7 @@ import { RegisterUserDto } from 'src/application/dto/register-user.dto';
 import { Usuario } from '../../entities/auth/usuario.enity';
 import { BussinesRuleException } from 'src/shared/domain/exceptions/business-rule.exception';
 import * as bcrypt from 'bcrypt';
+import { GoogleLoginDto } from 'src/application/dto/google-login.dto';
 
 
 
@@ -48,8 +49,31 @@ export class UsuariosService {
 
     return this.repository.create(usuario);
   }
+    async crearUsuarioGoogle(dto: GoogleLoginDto): Promise<Usuario> {
+
+    const existeGoogleId = await this.repository.findByGoogleId(dto.googleId);
+    if (existeGoogleId) {
+      return existeGoogleId; 
+    }
+
+    const usuario = new Usuario(
+      null,
+      dto.username,
+      dto.email,
+      null,
+      1,
+      new Date(),
+      'GOOGLE',
+      dto.googleId
+    );
+
+    return this.repository.create(usuario);
+  }
 
   async findByEmail(email: string): Promise<Usuario> {
     return this.repository.findByEmail(email);
+  }
+   async findByGoogleId(googleId: string): Promise<Usuario> {
+    return this.repository.findByGoogleId(googleId);
   }
 }

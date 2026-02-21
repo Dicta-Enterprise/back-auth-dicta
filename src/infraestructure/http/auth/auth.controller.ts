@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { RegisterUserUseCase } from 'src/application/use-cases/register-user.use-case';
 import { RegisterUserDto } from 'src/application/dto/register-user.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -8,6 +8,10 @@ import { jwtAuthGuard } from '../../../shared/guard/jwtAuth.guard';
 import { JwtPayload } from 'src/core/services/auth/jwtPayload';
 import { CurrentUser } from 'src/shared/decorator/current-user.decorator';
 import { Response } from 'express';
+import { envs } from 'src/config/envs';
+import { AuthGuard } from '@nestjs/passport';
+import { GoogleLoginDto } from 'src/application/dto/google-login.dto';
+import { GoogleUseCase } from 'src/application/use-cases/google-use.case';
 
 
 @ApiTags('Auth')
@@ -15,7 +19,8 @@ import { Response } from 'express';
 export class AuthController {
     constructor(
             private registerUseCase: RegisterUserUseCase,
-            private loginUseCase: LoginUserUseCase
+            private loginUseCase: LoginUserUseCase,
+            private googleUseCase: GoogleUseCase
     ) {}
     
     @Post('register')
@@ -58,7 +63,7 @@ export class AuthController {
         res.cookie('accessToken', result.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'strict'
         });
         return {
             message: 'Inicio de sesión exitoso'
@@ -75,5 +80,34 @@ export class AuthController {
     @Get('profile')
     profile(@CurrentUser() user: JwtPayload) {
     return user;
+    }
+
+    @Get('google')
+    @UseGuards(AuthGuard('google'))
+    googleLogin(){
+        return;
+    }
+
+    @Get('google/callback')
+    @UseGuards(AuthGuard('google'))
+    async googleCallback(
+    @Req() req: Request & { user: GoogleLoginDto },
+    @Res() res: Response,
+    ) {
+    try {
+        const result = await this.googleUseCase.execute(req.user);
+        if (result.isFailure) {
+            throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
+        }
+        const token = result.getValue();
+        res.cookie('accessToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+        });
+        return res.redirect(envs.frontendUrl);
+    }catch {
+        throw new HttpException('Error al iniciar sesión con Google', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
     }
 }
