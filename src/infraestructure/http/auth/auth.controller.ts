@@ -58,16 +58,16 @@ export class AuthController {
     @Post('login')
     @ApiOperation({ summary: 'Iniciar sesión de un usuario' })
     @ApiBody({ type: LoginDto })
-    async login(@Body() dtoLogin: LoginDto, @Res({ passthrough:true}) res: Response) {
-        const result = await this.loginUseCase.execute(dtoLogin);
-        res.cookie('accessToken', result.accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
-        });
-        return {
-            message: 'Inicio de sesión exitoso'
-        };
+    @UseGuards(AuthGuard('local'))
+    async login(@Req() req: Request & { user: { id: string; email: string } }, @Res({ passthrough: true }) res: Response) {
+    const result = await this.loginUseCase.execute(req.user);
+    res.cookie('accessToken', result.accessToken, { 
+        httpOnly: true, 
+        sameSite: 'strict', 
+        secure: process.env.NODE_ENV === 'production' });
+    return { 
+        message: 'Inicio de sesión exitoso'
+     };
     }
 
     @Post('logout')

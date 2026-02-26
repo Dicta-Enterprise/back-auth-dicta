@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { USUARIO_REPOSITORY } from '../../constants/constants';
 import { UsuarioRepository } from '../../repositories/usuario.repository';
 import { ValidatorService } from 'src/shared/application/validation/validator.service';
@@ -76,4 +76,13 @@ export class UsuariosService {
    async findByGoogleId(googleId: string): Promise<Usuario> {
     return this.repository.findByGoogleId(googleId);
   }
+  async validateLocalUser(email: string, password: string): Promise<Usuario> {
+  const usuario = await this.findByEmail(email);
+  if (!usuario) throw new UnauthorizedException('Credenciales inválidas');
+  if (usuario.authProvider === 'GOOGLE') throw new UnauthorizedException('Credenciales inválidas');
+  const ok = await bcrypt.compare(password, usuario.password);
+  if (!ok) throw new UnauthorizedException('Credenciales inválidas');
+
+  return usuario;
+}
 }
