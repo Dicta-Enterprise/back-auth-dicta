@@ -12,6 +12,7 @@ import { envs } from 'src/config/envs';
 import { AuthGuard } from '@nestjs/passport';
 import { GoogleLoginDto } from 'src/application/dto/google-login.dto';
 import { GoogleUseCase } from 'src/application/use-cases/google-use.case';
+import { LocalAuthGuard } from 'src/shared/guard/localAuth.guard';
 
 
 @ApiTags('Auth')
@@ -58,8 +59,8 @@ export class AuthController {
     @Post('login')
     @ApiOperation({ summary: 'Iniciar sesión de un usuario' })
     @ApiBody({ type: LoginDto })
-    @UseGuards(AuthGuard('local'))
-    async login(@Req() req: Request & { user: { id: string; email: string } }, @Res({ passthrough: true }) res: Response) {
+    @UseGuards(LocalAuthGuard)
+    async login(@Body() dto:LoginDto, @Req() req, @Res({ passthrough: true }) res: Response) {
     const result = await this.loginUseCase.execute(req.user);
     res.cookie('accessToken', result.accessToken, { 
         httpOnly: true, 
