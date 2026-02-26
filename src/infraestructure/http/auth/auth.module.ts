@@ -17,6 +17,7 @@ import { JwtStrategy } from '../../../core/services/auth/jwtStrategy.service';
 import { GoogleStrategy } from 'src/core/services/auth/google.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleUseCase } from 'src/application/use-cases/google-use.case';
+import { LocalStrategy } from 'src/core/services/auth/localStrategy';
 
 @Module({
   imports: [
@@ -42,7 +43,8 @@ import { GoogleUseCase } from 'src/application/use-cases/google-use.case';
     AuthService,
     JwtStrategy,
     GoogleStrategy,
-    GoogleUseCase
+    GoogleUseCase,
+    LocalStrategy
   ],
 })
 export class AuthModule {}
