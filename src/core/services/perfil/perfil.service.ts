@@ -1,0 +1,49 @@
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { CreateProfileDto } from 'src/application/dto/create-profile.dto';
+import { PerfilRepository } from 'src/core/repositories/perfil.repository';
+import { ValidatorService } from 'src/shared/application/validation/validator.service';
+import { BussinesRuleException } from 'src/shared/domain/exceptions/business-rule.exception';
+import * as bcrypt from 'bcrypt';
+import { Perfil } from 'src/core/entities/perfil/perfil.entity';
+import { PERFIL_REPOSITORY } from 'src/core/constants/constants';
+
+@Injectable()
+export class PerfilService {
+    constructor(
+    @Inject(PERFIL_REPOSITORY) 
+    private readonly repository: PerfilRepository,
+    private readonly validator: ValidatorService
+    ) {}
+    async crearPerfil(userId: number, dto: CreateProfileDto){
+        await this.validator.validate(dto, CreateProfileDto);
+
+        if (dto.confirmPassword !== dto.password) {
+        throw new BussinesRuleException(
+            'Las contraseñas no coinciden',
+            HttpStatus.BAD_REQUEST,
+            { codigoError: 'PASSWORDS_NOT_MATCH' },
+        );
+        }
+
+        const perfilesActuales = await this.repository.findAllByUserId(userId);
+        if(perfilesActuales.length >=4){
+            throw new BussinesRuleException('Limite de perfiles alcanzado', HttpStatus.BAD_REQUEST);
+        }
+
+        const idRol=4;
+        const salt= await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(dto.password, salt);
+
+        const perfil = new Perfil(
+            null,
+            dto.nombre,
+            hashedPassword,
+            userId,
+            idRol,
+            1,
+            dto.imageurl
+        );
+        
+        return this.repository.create(perfil)   ;
+}
+}

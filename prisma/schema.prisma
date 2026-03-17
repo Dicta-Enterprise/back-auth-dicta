@@ -91,9 +91,9 @@ model pais {
 model perfil {
   id        Int       @id @default(autoincrement())
   nombre    String?   @db.VarChar(50)
-  password  String?   @db.VarChar(50)
+  password  String?   @db.VarChar(255)
   estado    Int?      @db.SmallInt
-  imageurl  String?   @db.VarChar(100)
+  imageurl  String?   @db.Text
   idusuario Int?
   idrol     Int?
   rol       rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)

@@ -5,7 +5,7 @@ import { PrismaModule } from 'src/core/services/prisma/prisma.module';
 import { SharedModule } from 'src/shared/shared.module';
 
 import { USUARIO_REPOSITORY } from 'src/core/constants/constants';
-import { UsuarioPrismaRepository } from 'src/infraestructure/persistence/usuarios/usuario.prisma.repository';
+import { UsuarioPrismaRepository } from 'src/infrastructure/persistence/usuarios/usuario.prisma.repository';
 
 import { UsuariosService } from 'src/core/services/usuarios/usuarios.service';
 import { RegisterUserUseCase } from 'src/application/use-cases/register-user.use-case';
