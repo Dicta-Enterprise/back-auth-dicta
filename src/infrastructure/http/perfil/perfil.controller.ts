@@ -1,16 +1,25 @@
-import { Body, Controller, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateProfileDto } from 'src/application/dto/create-profile.dto';
 import { CreateProfileUseCase } from 'src/application/use-cases/create-profile.use-case';
+import { GetProfilesUseCase } from 'src/application/use-cases/get-profiles.use-case';
 import { JwtPayload } from 'src/core/services/auth/jwtPayload';
 import { CurrentUser } from 'src/shared/decorator/current-user.decorator';
 import { jwtAuthGuard } from 'src/shared/guard/jwtAuth.guard';
 
-@Controller('perfil')
+@ApiTags('Perfil')       
+@ApiBearerAuth()
+@Controller('profile')
 @UseGuards(jwtAuthGuard)
 export class PerfilController {
-     constructor(private readonly createProfileUseCase: CreateProfileUseCase ) {}
+    constructor(private readonly createProfileUseCase: CreateProfileUseCase
+        ,private readonly verPerfilesUseCase: GetProfilesUseCase
+     ) {}
 
-    @Post('crear')
+    @Post('create')
+    @ApiOperation({ summary: 'Crear perfil', description: 'Crea un nuevo perfil vinculado al usuario autenticado.' })
+    @ApiResponse({ status: 201, description: 'Perfil creado con éxito.' })
+    @ApiResponse({ status: 400, description: 'Error en la validación o regla de negocio.' })
     async create(@CurrentUser() userId: JwtPayload, @Body() dto: CreateProfileDto) {
         
         const user = Number(userId.sub);
@@ -28,6 +37,34 @@ export class PerfilController {
             imageurl: perfil.imageurl
         },
         message: 'Perfil creado con éxito'
-    };       
+    }  
 }
+@Get()
+    @ApiOperation({ 
+        summary: 'Listar perfiles', 
+        description: 'Obtiene todos los perfiles asociados al usuario autenticado.' 
+    })
+    @ApiResponse({ 
+        status: 200, 
+        description: 'Lista obtenida con éxito.',
+        schema: {
+            example: {
+                data: [
+                    { id: 1, nombre: 'Perfil 1', idusuario: 33, idrol: 4, estado: 1, imageurl: '...' }
+                ]
+            }
+        }
+    })
+    @ApiResponse({ status: 404, description: 'No se encontraron perfiles para este usuario.' })
+    async verPerfiles(@CurrentUser() userId: JwtPayload) {
+        const user = Number(userId.sub);
+        const result = await this.verPerfilesUseCase.execute(user);
+        if (result.isFailure) {
+        throw new HttpException(result.error.message, HttpStatus.NOT_FOUND);
+        }
+        return {
+        data: result.getValue(),
+        message: 'Perfles obtenidos con éxito'
+    };
+    }
 }

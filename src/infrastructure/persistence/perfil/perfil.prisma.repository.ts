@@ -21,7 +21,12 @@ export class PerfilPrismaRepository implements PerfilRepository {
     }
 
      async findAllByUserId(userId: number): Promise<Perfil[]> {
-        const data= await this.prisma.perfil.findMany({where: {idusuario:userId}})
+        const data= await this.prisma.perfil.findMany({where: { idusuario: userId },
+        select: {
+        nombre: true,
+        estado: true,
+        imageurl: true,
+        },})
         return data.map((p) => Perfil.fromPrisma(p));
     }
   
