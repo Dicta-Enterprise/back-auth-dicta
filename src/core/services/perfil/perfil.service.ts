@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProfileDto } from 'src/application/dto/create-profile.dto';
 import { PerfilRepository } from 'src/core/repositories/perfil.repository';
 import { ValidatorService } from 'src/shared/application/validation/validator.service';
@@ -45,5 +45,12 @@ export class PerfilService {
         );
         
         return this.repository.create(perfil)   ;
+}
+async verPerfil(userId: number): Promise<Perfil[]> {
+    const perfiles = await this.repository.findAllByUserId(userId);
+    if (perfiles.length === 0) {
+        throw new NotFoundException('No se encontraron perfiles para este usuario');
+    }
+    return perfiles;
 }
 }
