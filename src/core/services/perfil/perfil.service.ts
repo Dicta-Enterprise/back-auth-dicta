@@ -6,6 +6,7 @@ import { BussinesRuleException } from 'src/shared/domain/exceptions/business-rul
 import * as bcrypt from 'bcrypt';
 import { Perfil } from 'src/core/entities/perfil/perfil.entity';
 import { PERFIL_REPOSITORY } from 'src/core/constants/constants';
+import { UpdateProfileDto } from 'src/application/dto/update-profile.dto';
 
 @Injectable()
 export class PerfilService {
@@ -52,5 +53,12 @@ async verPerfil(userId: number): Promise<Perfil[]> {
         throw new NotFoundException('No se encontraron perfiles para este usuario');
     }
     return perfiles;
+}
+async updatePerfil(perfilId: number, userId: number, data: UpdateProfileDto) {
+    const existe= await this.repository.findProfileById(perfilId, userId);
+    if(!existe){
+        throw new NotFoundException('Perfil no existe');
+    }
+    return this.repository.update(perfilId, userId, data);
 }
 }
