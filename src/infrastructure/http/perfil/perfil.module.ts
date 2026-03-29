@@ -7,6 +7,7 @@ import { PerfilPrismaRepository } from 'src/infrastructure/persistence/perfil/pe
 import { PrismaService } from 'src/core/services/prisma/prisma.service';
 import { ValidatorService } from 'src/shared/application/validation/validator.service';
 import { GetProfilesUseCase } from 'src/application/use-cases/get-profiles.use-case';
+import { UpdateProfileUseCase } from 'src/application/use-cases/update-profile.use-case';
 
 @Module({
   controllers: [PerfilController],
@@ -19,7 +20,8 @@ import { GetProfilesUseCase } from 'src/application/use-cases/get-profiles.use-c
     CreateProfileUseCase,
     PrismaService, 
     ValidatorService, 
-    GetProfilesUseCase  
+    GetProfilesUseCase ,
+    UpdateProfileUseCase
 ],
   exports: [PerfilService],
 })
