@@ -8,7 +8,7 @@ constructor(
     private readonly authService: AuthService,
     private readonly usuariosService: UsuariosService
 ) {}
-async execute(user:{id:string, email:string}) {
+async execute(user:{id:string, email:string, idrol: number}) {
     return {
         accessToken: this.authService.generateAccessToken(user)
     }

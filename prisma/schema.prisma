@@ -9,12 +9,22 @@ datasource db {
 }
 
 model accesos {
-  id            Int       @id @default(autoincrement())
-  idrol         Int
-  fechacreacion DateTime?
-  estado        Int?      @db.SmallInt
-  descripcion   String?   @db.VarChar(200)
-  rol           rol       @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_accesos_rol")
+  id              Int               @id @default(autoincrement())
+  codigo          String            @unique @db.VarChar(50) 
+  descripcion     String?           @db.VarChar(200)
+  estado          Int?  @default(1) @db.SmallInt
+  detalle_accesos detalle_accesos[]
+}
+
+model detalle_accesos {
+  id         Int      @id @default(autoincrement())
+  idrol      Int
+  idacceso   Int
+  
+  rol        rol      @relation(fields: [idrol], references: [id])
+  acceso     accesos  @relation(fields: [idacceso], references: [id])
+
+  @@unique([idrol, idacceso]) 
 }
 
 model departamento {
@@ -130,9 +140,9 @@ model rol {
   estado      Int?       @db.SmallInt
   descripcion String?    @db.VarChar(200)
   tipo        String?    @db.VarChar(50)
-  accesos     accesos[]
   perfil      perfil[]
   usuarios    usuarios[]
+  detalle_accesos detalle_accesos[]
 }
 
 model usuarios {
@@ -143,7 +153,7 @@ model usuarios {
   password          String?   @db.VarChar(255)
   fechadecreacion   DateTime?
   estado            Int?      @db.SmallInt
-  idrol             Int?
+  idrol     Int?     @default(3)
   orden             orden[]
   perfil            perfil[]
   persona           persona[]
