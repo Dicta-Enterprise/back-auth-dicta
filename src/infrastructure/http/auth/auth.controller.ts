@@ -57,7 +57,6 @@ export class AuthController {
     },
     })
     @Post('login')
-    @ApiOperation({ summary: 'Iniciar sesión de un usuario' })
     @ApiBody({ type: LoginDto })
     @UseGuards(LocalAuthGuard)
     async login(@Body() dto:LoginDto, @Req() req, @Res({ passthrough: true }) res: Response) {
@@ -70,7 +69,7 @@ export class AuthController {
         message: 'Inicio de sesión exitoso'
      };
     }
-
+    @ApiOperation({ summary: 'Cerrar sesión' })
     @Post('logout')
     logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('accessToken'); 
@@ -78,17 +77,26 @@ export class AuthController {
     }
 
     @UseGuards(jwtAuthGuard)
+    @ApiOperation({ summary: 'Obtener perfil de usuario (prueba)' })
     @Get('profile')
     profile(@CurrentUser() user: JwtPayload) {
     return user;
     }
 
     @Get('google')
+    @ApiOperation({ 
+    summary: 'Iniciar flujo de autenticación con Google', 
+    description: 'Redirige al usuario a la página de inicio de sesión de Google.' 
+    })
     @UseGuards(AuthGuard('google'))
     googleLogin(){
         return;
     }
 
+    @ApiOperation({ 
+    summary: 'Callback de autenticación de Google', 
+    description: 'Recibe los datos de Google, genera el JWT y redirige al frontend con la cookie de sesión.' 
+    })
     @Get('google/callback')
     @UseGuards(AuthGuard('google'))
     async googleCallback(

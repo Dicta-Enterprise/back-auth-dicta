@@ -7,7 +7,8 @@ export class Usuario{
     public estado: number,
     public fechadecreacion: Date,
     public authProvider: string = 'LOCAL',
-    public googleId?: string
+    public googleId?: string,
+    public idrol?: number
   ){}
 
   static fromPrisma(data: unknown): Usuario {
@@ -20,6 +21,7 @@ export class Usuario{
       fechadecreacion: Date;
       authProvider: string;
       googleId?: string;
+      idrol?: number;
     };
 
     return new Usuario(
@@ -30,7 +32,8 @@ export class Usuario{
       u.estado,
       u.fechadecreacion,
       u.authProvider,
-      u.googleId
+      u.googleId,
+      u.idrol
     );
   }
 }
