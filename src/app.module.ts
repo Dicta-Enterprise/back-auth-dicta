@@ -4,9 +4,10 @@ import { AppService } from './app.service';
 import { AuthModule } from './infrastructure/http/auth/auth.module';
 import { PerfilModule } from './infrastructure/http/perfil/perfil.module';
 import { AccesosModule } from './infrastructure/http/acceso/accesos.module';
+import { RolesModule  } from './infrastructure/http/rol/roles.module';
 
 @Module({
-  imports: [AuthModule, PerfilModule, AccesosModule],
+  imports: [AuthModule, PerfilModule, AccesosModule,RolesModule ],
   controllers: [AppController],
   providers: [AppService],
 })

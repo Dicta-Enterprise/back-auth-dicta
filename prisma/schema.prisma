@@ -10,21 +10,20 @@ datasource db {
 
 model accesos {
   id              Int               @id @default(autoincrement())
-  codigo          String            @unique @db.VarChar(50) 
+  codigo          String            @unique @db.VarChar(50)
   descripcion     String?           @db.VarChar(200)
-  estado          Int?  @default(1) @db.SmallInt
+  estado          Int?              @default(1) @db.SmallInt
   detalle_accesos detalle_accesos[]
 }
 
 model detalle_accesos {
-  id         Int      @id @default(autoincrement())
-  idrol      Int
-  idacceso   Int
-  
-  rol        rol      @relation(fields: [idrol], references: [id])
-  acceso     accesos  @relation(fields: [idacceso], references: [id])
+  id       Int     @id @default(autoincrement())
+  idrol    Int
+  idacceso Int
+  acceso   accesos @relation(fields: [idacceso], references: [id])
+  rol      rol     @relation(fields: [idrol], references: [id])
 
-  @@unique([idrol, idacceso]) 
+  @@unique([idrol, idacceso])
 }
 
 model departamento {
@@ -103,7 +102,7 @@ model perfil {
   nombre    String?   @db.VarChar(50)
   password  String?   @db.VarChar(255)
   estado    Int?      @db.SmallInt
-  imageurl  String?   @db.Text
+  imageurl  String?
   idusuario Int?
   idrol     Int?
   rol       rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -135,28 +134,28 @@ model provincia {
 }
 
 model rol {
-  id          Int        @id
-  nombrerol   String?    @db.VarChar(50)
-  estado      Int?       @db.SmallInt
-  descripcion String?    @db.VarChar(200)
-  tipo        String?    @db.VarChar(50)
-  perfil      perfil[]
-  usuarios    usuarios[]
+  id              Int               @id
+  nombrerol       String?           @db.VarChar(50)
+  estado          Int?              @db.SmallInt
+  descripcion     String?           @db.VarChar(200)
+  tipo            String?           @db.VarChar(50)
   detalle_accesos detalle_accesos[]
+  perfil          perfil[]
+  usuarios        usuarios[]
 }
 
 model usuarios {
-  id                Int       @id @default(autoincrement())
-  username          String   @db.VarChar(50)
-  email             String   @unique @db.VarChar(150)
-  auth_provider String @default("LOCAL") @db.VarChar(20)
-  password          String?   @db.VarChar(255)
-  fechadecreacion   DateTime?
-  estado            Int?      @db.SmallInt
-  idrol     Int?     @default(3)
-  orden             orden[]
-  perfil            perfil[]
-  persona           persona[]
-  rol               rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  googleId String? @unique
+  id              Int       @id @default(autoincrement())
+  username        String    @db.VarChar(50)
+  email           String    @unique @db.VarChar(150)
+  auth_provider   String    @default("LOCAL") @db.VarChar(20)
+  password        String?   @db.VarChar(255)
+  fechadecreacion DateTime?
+  estado          Int?      @db.SmallInt
+  idrol           Int?      @default(3)
+  googleId        String?   @unique
+  orden           orden[]
+  perfil          perfil[]
+  persona         persona[]
+  rol             rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
