@@ -102,7 +102,7 @@ model perfil {
   nombre    String?   @db.VarChar(50)
   password  String?   @db.VarChar(255)
   estado    Int?      @db.SmallInt
-  imageurl  String?
+  imageurl  String?   @db.Text
   idusuario Int?
   idrol     Int?
   rol       rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -140,6 +140,7 @@ model rol {
   descripcion     String?           @db.VarChar(200)
   tipo            String?           @db.VarChar(50)
   detalle_accesos detalle_accesos[]
+  detallepermisos detallepermisos[]
   perfil          perfil[]
   usuarios        usuarios[]
 }
@@ -158,4 +159,25 @@ model usuarios {
   perfil          perfil[]
   persona         persona[]
   rol             rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model permiso {
+  id              Int               @id @default(autoincrement())
+  codigo          String            @unique @db.VarChar(50)
+  nombre          String            @db.VarChar(100)
+  descripcion     String?           @db.VarChar(200)
+  estado          Int               @default(1) @db.SmallInt
+  detallepermisos detallepermisos[]
+}
+
+model detallepermisos {
+  id            Int      @id @default(autoincrement())
+  idrol         Int
+  idpermiso     Int
+  estado        Int      @default(1) @db.SmallInt
+  fechacreacion DateTime @default(now()) @db.Timestamp(6)
+  permiso       permiso  @relation(fields: [idpermiso], references: [id])
+  rol           rol      @relation(fields: [idrol], references: [id])
+
+  @@unique([idrol, idpermiso])
 }
