@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsOptional, IsString, IsUrl, IsEmail } from 'class-validator';
 
 export class UpdateProfileDto {
     @ApiProperty({ example: 'Jose', description: 'Nombre del perfil', required: false })
@@ -11,4 +11,14 @@ export class UpdateProfileDto {
     @IsOptional()
     @IsUrl({}, { message: 'La URL de la imagen no es válida' })
     imageurl?: string;
+
+    @ApiProperty({ example: 'jose@gmail.com', required: false })
+    @IsEmail({}, { message: 'El email no es válido' })
+    @IsOptional()
+    email?: string;
+
+    @ApiProperty({ example: 'NuevaPassword123!', required: false })
+    @IsString({ message: 'La contraseña debe ser un texto válido' })
+    @IsOptional()
+    password?: string;
 }

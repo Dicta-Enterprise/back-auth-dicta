@@ -91,7 +91,7 @@ model pais {
 model perfil {
   id        Int       @id @default(autoincrement())
   nombre    String?   @db.VarChar(50)
-  password  String?   @db.VarChar(50)
+  password  String?   @db.VarChar(255)
   estado    Int?      @db.SmallInt
   imageurl  String?   @db.VarChar(100)
   idusuario Int?
@@ -138,8 +138,8 @@ model rol {
 model usuarios {
   id                Int       @id @default(autoincrement())
   username          String?   @db.VarChar(50)
-  email             String?   @db.VarChar(50)
-  password          String?   @db.VarChar(50)
+  email             String?   @db.VarChar(255)
+  password          String?   @db.VarChar(255)
   confirmarpassword String?   @db.VarChar(50)
   fechadecreacion   DateTime?
   estado            Int?      @db.SmallInt
