@@ -31,7 +31,7 @@ export class PerfilService {
             throw new BussinesRuleException('Limite de perfiles alcanzado', HttpStatus.BAD_REQUEST);
         }
 
-        const idRol=4;
+        const idRol=3;
         const salt= await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(dto.password, salt);
 
@@ -59,6 +59,12 @@ async updatePerfil(perfilId: number, userId: number, data: UpdateProfileDto) {
     if(!existe){
         throw new NotFoundException('Perfil no existe');
     }
+
+    if ((data as any).password) {
+        const salt = await bcrypt.genSalt(10);
+        (data as any).password = await bcrypt.hash((data as any).password, salt);
+    }
+    
     return this.repository.update(perfilId, userId, data);
 }
 }
