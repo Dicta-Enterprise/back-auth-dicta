@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { envs } from './config/envs';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { apiReference } from '@scalar/nestjs-api-reference';
+//import { apiReference } from '@scalar/nestjs-api-reference';
 import * as cookieParser from 'cookie-parser';
 
 
@@ -16,7 +16,7 @@ async function bootstrap() {
   app.use(cookieParser());
   
   app.enableCors({
-    origin: 'http://localhost:4200',
+    origin: 'https://localhost:4200',
     credentials: true,
     methods: 'GET,PUT,POST,DELETE,PATCH',
   });
@@ -38,12 +38,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/swagger', app, document);
 
-  app.use(
+  /*app.use(
     '/api/scalar',
     apiReference({
       content: document,
     }),
-  );
+  );*/
   await app.listen(envs.port);
 
    logger.log(`API corriendo en http://localhost:${envs.port}/api`);
