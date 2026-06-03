@@ -7,19 +7,21 @@ import { Usuario } from '../../entities/auth/usuario.enity';
 import { BussinesRuleException } from 'src/shared/domain/exceptions/business-rule.exception';
 import * as bcrypt from 'bcrypt';
 import { GoogleLoginDto } from 'src/application/dto/google-login.dto';
-
+import { MailerService } from 'src/core/services/mailer/mailer.service';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
 export class UsuariosService {
   constructor(
-  @Inject(USUARIO_REPOSITORY)
-  private repository: UsuarioRepository,
-  private readonly validator: ValidatorService
+    @Inject(USUARIO_REPOSITORY)
+    private repository: UsuarioRepository,
+    private readonly validator: ValidatorService,
+    private readonly mailerService: MailerService,
+    private readonly config: ConfigService,
   ) {}
 
   async crearUsuario(dtoUsuario: RegisterUserDto): Promise<Usuario> {
-
     await this.validator.validate(dtoUsuario, RegisterUserDto);
 
     if (dtoUsuario.confirmPassword !== dtoUsuario.password) {
@@ -35,7 +37,7 @@ export class UsuariosService {
       throw new BussinesRuleException('El correo ya está registrado', HttpStatus.BAD_REQUEST);
     }
 
-    const salt= await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(dtoUsuario.password, salt);
 
     const usuario = new Usuario(
@@ -47,13 +49,32 @@ export class UsuariosService {
       new Date(),
     );
 
-    return this.repository.create(usuario);
+    const creado = await this.repository.create(usuario);
+
+    // Crear contacto en Brevo y enviar bienvenida
+    await this.mailerService.crearContacto({
+      email: creado.email,
+      nombre: creado.username,
+    });
+
+    await this.mailerService.enviar({
+      to: creado.email,
+      nombreUsuario: creado.username,
+      subject: `¡Bienvenido a Dicta, ${creado.username}!`,
+      templateId: this.config.get<number>('BREVO_TEMPLATE_BIENVENIDA'),
+      context: {
+        nombreUsuario: creado.username,
+        urlPlataforma: this.config.get('FRONTEND_URL', ''),
+        year: new Date().getFullYear(),
+      },
+    });
+
+    return creado;
   }
     async crearUsuarioGoogle(dto: GoogleLoginDto): Promise<Usuario> {
-
     const existeGoogleId = await this.repository.findByGoogleId(dto.googleId);
     if (existeGoogleId) {
-      return existeGoogleId; 
+      return existeGoogleId;
     }
 
     const usuario = new Usuario(
@@ -64,10 +85,30 @@ export class UsuariosService {
       1,
       new Date(),
       'GOOGLE',
-      dto.googleId
+      dto.googleId,
     );
 
-    return this.repository.create(usuario);
+    const creado = await this.repository.create(usuario);
+
+    // Crear contacto en Brevo y enviar bienvenida
+    await this.mailerService.crearContacto({
+      email: creado.email,
+      nombre: creado.username,
+    });
+
+    await this.mailerService.enviar({
+      to: creado.email,
+      nombreUsuario: creado.username,
+      subject: `¡Bienvenido a Dicta, ${creado.username}!`,
+      templateId: this.config.get<number>('BREVO_TEMPLATE_BIENVENIDA'),
+      context: {
+        nombreUsuario: creado.username,
+        urlPlataforma: this.config.get('FRONTEND_URL', ''),
+        year: new Date().getFullYear(),
+      },
+    });
+
+    return creado;
   }
 
   async findByEmail(email: string): Promise<Usuario> {
