@@ -80,6 +80,7 @@ export class MailerService {
       email: data.email,
       attributes: {
         NOMBRE: data.nombre,
+        ES_COMPRADOR: false,
       },
       updateEnabled: true,
     });
