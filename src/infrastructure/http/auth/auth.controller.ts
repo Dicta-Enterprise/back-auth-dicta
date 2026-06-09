@@ -63,8 +63,8 @@ export class AuthController {
     const result = await this.loginUseCase.execute(req.user);
     res.cookie('accessToken', result.accessToken, { 
         httpOnly: true, 
-        sameSite: 'strict', 
-        secure: process.env.NODE_ENV === 'production' });
+        sameSite: 'none', 
+        secure: true });
     return { 
         message: 'Inicio de sesión exitoso'
      };
@@ -72,7 +72,12 @@ export class AuthController {
     @ApiOperation({ summary: 'Cerrar sesión' })
     @Post('logout')
     logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('accessToken'); 
+    res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/',
+    }); 
     return { message: 'Sesión cerrada correctamente' };
     }
 
@@ -111,8 +116,8 @@ export class AuthController {
         const token = result.getValue();
         res.cookie('accessToken', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax'
+            secure: true,
+            sameSite: 'none'
         });
         return res.redirect(envs.frontendUrl);
     }catch {
