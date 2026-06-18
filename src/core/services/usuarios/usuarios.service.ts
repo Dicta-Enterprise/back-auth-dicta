@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { USUARIO_REPOSITORY } from '../../constants/constants';
 import { UsuarioRepository } from '../../repositories/usuario.repository';
 import { ValidatorService } from 'src/shared/application/validation/validator.service';
@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsuariosService {
+  private readonly logger = new Logger(UsuariosService.name);
   constructor(
     @Inject(USUARIO_REPOSITORY)
     private repository: UsuarioRepository,
@@ -51,23 +52,31 @@ export class UsuariosService {
 
     const creado = await this.repository.create(usuario);
 
-    // Crear contacto en Brevo y enviar bienvenida
-    await this.mailerService.crearContacto({
-      email: creado.email,
-      nombre: creado.username,
-    });
+    try {
+      await this.mailerService.crearContacto({
+        email: creado.email,
+        nombre: creado.username,
+      });
 
-    await this.mailerService.enviar({
-      to: creado.email,
-      nombreUsuario: creado.username,
-      subject: `¡Bienvenido a Dicta, ${creado.username}!`,
-      templateId: this.config.get<number>('BREVO_TEMPLATE_BIENVENIDA'),
-      context: {
+      await this.mailerService.enviar({
+        to: creado.email,
         nombreUsuario: creado.username,
-        urlPlataforma: this.config.get('FRONTEND_URL', ''),
-        year: new Date().getFullYear(),
-      },
-    });
+        subject: `¡Bienvenido a Dicta, ${creado.username}!`,
+        templateId: this.config.get<number>('BREVO_TEMPLATE_BIENVENIDA'),
+        context: {
+          nombreUsuario: creado.username,
+          urlPlataforma: `${this.config.get('FRONTEND_URL', '')}/auth/login`,
+          year: new Date().getFullYear(),
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error al enviar correo de bienvenida a ${creado.email}: ${error.message}`,
+          error.stack,
+        );
+      }
+    }
 
     return creado;
   }
@@ -90,23 +99,31 @@ export class UsuariosService {
 
     const creado = await this.repository.create(usuario);
 
-    // Crear contacto en Brevo y enviar bienvenida
-    await this.mailerService.crearContacto({
-      email: creado.email,
-      nombre: creado.username,
-    });
+    try {
+      await this.mailerService.crearContacto({
+        email: creado.email,
+        nombre: creado.username,
+      });
 
-    await this.mailerService.enviar({
-      to: creado.email,
-      nombreUsuario: creado.username,
-      subject: `¡Bienvenido a Dicta, ${creado.username}!`,
-      templateId: this.config.get<number>('BREVO_TEMPLATE_BIENVENIDA'),
-      context: {
+      await this.mailerService.enviar({
+        to: creado.email,
         nombreUsuario: creado.username,
-        urlPlataforma: this.config.get('FRONTEND_URL', ''),
-        year: new Date().getFullYear(),
-      },
-    });
+        subject: `¡Bienvenido a Dicta, ${creado.username}!`,
+        templateId: this.config.get<number>('BREVO_TEMPLATE_BIENVENIDA'),
+        context: {
+          nombreUsuario: creado.username,
+          urlPlataforma: `${this.config.get('FRONTEND_URL', '')}/auth/login`,
+          year: new Date().getFullYear(),
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Error al enviar correo de bienvenida a ${creado.email}: ${error.message}`,
+          error.stack,
+        );
+      }
+    }
 
     return creado;
   }
