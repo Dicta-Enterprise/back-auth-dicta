@@ -20,6 +20,9 @@ import { GoogleUseCase } from 'src/application/use-cases/google-use.case';
 import { LocalStrategy } from 'src/core/services/auth/localStrategy';
 import { MailerModule } from 'src/core/services/mailer/mailer.module';
 import { ConfigModule } from '@nestjs/config';
+import { ForgotPasswordUseCase } from 'src/application/use-cases/forgot-password.use-case';
+import { VerifyResetCodeUseCase } from 'src/application/use-cases/verify-reset-code.use-case';
+import { ResetPasswordUseCase } from 'src/application/use-cases/reset-password.use-case';
 
 @Module({
   imports: [
@@ -48,7 +51,10 @@ import { ConfigModule } from '@nestjs/config';
     JwtStrategy,
     GoogleStrategy,
     GoogleUseCase,
-    LocalStrategy
+    LocalStrategy,
+    ForgotPasswordUseCase,     
+    VerifyResetCodeUseCase,    
+    ResetPasswordUseCase,  
   ],
 })
 export class AuthModule {}

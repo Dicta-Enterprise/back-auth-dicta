@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { GoogleLoginDto } from 'src/application/dto/google-login.dto';
 import { MailerService } from 'src/core/services/mailer/mailer.service';
 import { ConfigService } from '@nestjs/config';
+import { ResetPasswordDto } from 'src/application/dto/reset-password.dto';
 
 
 @Injectable()
@@ -142,5 +143,104 @@ export class UsuariosService {
   if (!ok) throw new UnauthorizedException('Credenciales inválidas');
 
   return usuario;
+}
+
+async solicitarResetCodigo(email: string): Promise<void> {
+  const usuario = await this.repository.findByEmail(email);
+  if (!usuario) return;
+
+  if (usuario.authProvider === 'GOOGLE') {
+    throw new BussinesRuleException(
+      'Esta cuenta usa Google. No puedes cambiar la contraseña aquí.',
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+  await this.repository.saveResetCode(Number(usuario.id), code, expires);
+
+  try {
+    await this.mailerService.enviar({
+      to: usuario.email,
+      nombreUsuario: usuario.username,
+      subject: 'Código para restablecer tu contraseña',
+      templateId: this.config.get<number>('BREVO_TEMPLATE_RESET_PASSWORD'),
+      context: {
+        nombreUsuario: usuario.username,
+        resetCode: code,
+        year: new Date().getFullYear(),
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      this.logger.error(
+        `Error al enviar código de reset a ${usuario.email}: ${error.message}`,
+        error.stack,
+      );
+    }
+  }
+}
+
+async verificarResetCodigo(email: string, code: string): Promise<void> {
+  const usuario = await this.repository.findByEmail(email);
+
+  if (!usuario || !usuario.resetCode) {
+    throw new BussinesRuleException('Código inválido', HttpStatus.BAD_REQUEST);
+  }
+
+  // Verificar límite de intentos
+  if (usuario.resetAttempts >= 5) {
+    throw new BussinesRuleException(
+      'Demasiados intentos fallidos. Solicita un nuevo código.',
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
+  }
+
+  // Verificar expiración primero
+  if (!usuario.resetCodeExpires || usuario.resetCodeExpires < new Date()) {
+    throw new BussinesRuleException('El código ha expirado', HttpStatus.BAD_REQUEST);
+  }
+
+  // Verificar código — si es incorrecto, incrementar intentos
+  if (usuario.resetCode !== code) {
+    await this.repository.incrementResetAttempts(Number(usuario.id));
+    this.logger.warn(
+      `Intento fallido de reset para ${email}. Intentos: ${(usuario.resetAttempts ?? 0) + 1}/5`,
+    );
+    throw new BussinesRuleException('Código inválido', HttpStatus.BAD_REQUEST);
+  }
+}
+
+async resetPassword(dto: ResetPasswordDto): Promise<void> {
+  if (dto.newPassword !== dto.confirmPassword) {
+    throw new BussinesRuleException(
+      'Las contraseñas no coinciden',
+      HttpStatus.BAD_REQUEST,
+      { codigoError: 'PASSWORDS_NOT_MATCH' },
+    );
+  }
+
+  await this.verificarResetCodigo(dto.email, dto.code);
+
+  const usuario = await this.repository.findByEmail(dto.email);
+
+  if (usuario.password) {
+    const esMismaPassword = await bcrypt.compare(dto.newPassword, usuario.password);
+    if (esMismaPassword) {
+      throw new BussinesRuleException(
+        'La nueva contraseña no puede ser igual a la anterior',
+        HttpStatus.BAD_REQUEST,
+        { codigoError: 'SAME_PASSWORD' },
+      );
+    }
+  }
+  
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(dto.newPassword, salt);
+
+  await this.repository.updatePassword(Number(usuario.id), hashedPassword);
+  this.logger.log(`Contraseña actualizada para: ${dto.email}`);
 }
 }
