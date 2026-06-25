@@ -5,4 +5,7 @@ export interface UsuarioRepository {
     findByEmail(email: string): Promise<Usuario | null>;
     create(usuario: Usuario): Promise<Usuario>;
     findByGoogleId(googleId: string): Promise<Usuario | null>;
+    saveResetCode(id: number, code: string, expires: Date): Promise<void>;
+    updatePassword(id: number, hashedPassword: string): Promise<void>; 
+    incrementResetAttempts(id: number): Promise<void>;
 }

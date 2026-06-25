@@ -34,4 +34,36 @@ export class UsuarioPrismaRepository implements UsuarioRepository {
   });
   return data ? Usuario.fromPrisma(data) : null;
 }
+
+async saveResetCode(id: number, code: string, expires: Date): Promise<void> {
+  await this.prisma.usuarios.update({
+    where: { id },
+    data: {
+      reset_code: code,
+      reset_code_expires: expires,
+      reset_attempts: 0, 
+    },
+  });
+}
+
+async updatePassword(id: number, hashedPassword: string): Promise<void> {
+  await this.prisma.usuarios.update({
+    where: { id },
+    data: {
+      password: hashedPassword,
+      reset_code: null,
+      reset_code_expires: null,
+      reset_attempts: 0,
+    },
+  });
+}
+
+async incrementResetAttempts(id: number): Promise<void> {
+  await this.prisma.usuarios.update({
+    where: { id },
+    data: {
+      reset_attempts: { increment: 1 },
+    },
+  });
+}
 }

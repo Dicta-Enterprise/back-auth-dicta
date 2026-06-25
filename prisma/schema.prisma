@@ -159,6 +159,9 @@ model usuarios {
   perfil          perfil[]
   persona         persona[]
   rol             rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reset_code        String?   @db.VarChar(6)
+  reset_code_expires DateTime? @db.Timestamp(6)
+  reset_attempts Int @default(0)
 }
 
 model permiso {
