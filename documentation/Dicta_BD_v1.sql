@@ -96,6 +96,7 @@ CREATE TABLE usuarios (
   "googleId" text NULL,
   reset_code varchar(6) NULL,
   reset_code_expires timestamp(6) NULL,
+  reset_attempts integer NOT NULL DEFAULT 0,
   CONSTRAINT usuarios_pkey PRIMARY KEY (id),
   CONSTRAINT usuarios_email_key UNIQUE (email),
   CONSTRAINT usuarios_googleId_key UNIQUE ("googleId"),
