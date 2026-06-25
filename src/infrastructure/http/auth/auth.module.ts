@@ -18,12 +18,16 @@ import { GoogleStrategy } from 'src/core/services/auth/google.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleUseCase } from 'src/application/use-cases/google-use.case';
 import { LocalStrategy } from 'src/core/services/auth/localStrategy';
+import { MailerModule } from 'src/core/services/mailer/mailer.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     SharedModule,
     PrismaModule,
     PassportModule,
+    MailerModule,
+    ConfigModule,
     JwtModule.register({
       secret: envs.jwtSecret,
       signOptions: {
