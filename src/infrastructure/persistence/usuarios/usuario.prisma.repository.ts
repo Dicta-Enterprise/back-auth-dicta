@@ -16,7 +16,8 @@ export class UsuarioPrismaRepository implements UsuarioRepository {
         password: usuario.password,
         estado: usuario.estado,
         fechadecreacion: usuario.fechadecreacion,
-        googleId: usuario.googleId
+        googleId: usuario.googleId,
+        terminos_condiciones: usuario.acceptTerms,
     }
     });
     return Usuario.fromPrisma(data);

@@ -15,16 +15,21 @@ async function bootstrap() {
 
   app.use(cookieParser());
   
-  app.enableCors({
-    origin: 'https://localhost:4200',
+app.enableCors({
+    origin: [
+    'https://localhost:58863',
+    'https://localhost:4200',
+    
+    ],
     credentials: true,
     methods: 'GET,PUT,POST,DELETE,PATCH',
-  });
+  }); 
 
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
   

@@ -158,6 +158,7 @@ model usuarios {
   orden           orden[]
   perfil          perfil[]
   persona         persona[]
+  terminos_condiciones Boolean @default(false)
   rol             rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
