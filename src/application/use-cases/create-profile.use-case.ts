@@ -10,11 +10,11 @@ export class CreateProfileUseCase {
         private readonly perfilService: PerfilService,
     ) {}
     async execute(userId: number, dto: CreateProfileDto): Promise<Result<Perfil>> {
-    try {
-        const perfil = await this.perfilService.crearPerfil(userId, dto);
-        return Result.ok(perfil);
-    }catch (error){
-          return Result.fail(error);
+        try {
+            const perfil = await this.perfilService.crearPerfil(userId, dto);
+            return Result.ok(perfil);
+        } catch{
+        return Result.fail(new Error('Ocurrió un error desconocido al crear el perfil.'));
+        }
     }
-}
 }

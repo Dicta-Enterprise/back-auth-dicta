@@ -11,8 +11,8 @@ export class CreateAccesoUseCase {
         try {
             const acceso = await this.accesoService.crearAcceso(dto);
             return Result.ok(acceso);
-        } catch (error) {
-            return Result.fail(error);
+        } catch{
+          return Result.fail(new Error('Ocurrió un error desconocido al crear el acceso.'));
         }
     }
 }

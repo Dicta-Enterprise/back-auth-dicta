@@ -11,8 +11,8 @@ export class ForgotPasswordUseCase {
     try {
       await this.usuarioService.solicitarResetCodigo(dto.email);
       return Result.ok(undefined);
-    } catch (error) {
-      return Result.fail(error);
-    }
+    } catch {
+      return Result.fail(new Error('Ocurrió un error desconocido al solicitar el reseteo de contraseña.'));
+    }  
   }
 }
