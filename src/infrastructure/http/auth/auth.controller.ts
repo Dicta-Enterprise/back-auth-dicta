@@ -13,6 +13,12 @@ import { AuthGuard } from '@nestjs/passport';
 import { GoogleLoginDto } from 'src/application/dto/google-login.dto';
 import { GoogleUseCase } from 'src/application/use-cases/google-use.case';
 import { LocalAuthGuard } from 'src/shared/guard/localAuth.guard';
+import { ForgotPasswordDto } from 'src/application/dto/forgot-password.dto';
+import { ForgotPasswordUseCase } from 'src/application/use-cases/forgot-password.use-case';
+import { VerifyResetCodeUseCase } from 'src/application/use-cases/verify-reset-code.use-case';
+import { ResetPasswordUseCase } from 'src/application/use-cases/reset-password.use-case';
+import { VerifyResetCodeDto } from 'src/application/dto/verify-reset-code.dto';
+import { ResetPasswordDto } from 'src/application/dto/reset-password.dto';
 
 
 @ApiTags('Auth')
@@ -21,7 +27,10 @@ export class AuthController {
     constructor(
             private registerUseCase: RegisterUserUseCase,
             private loginUseCase: LoginUserUseCase,
-            private googleUseCase: GoogleUseCase
+            private googleUseCase: GoogleUseCase,
+            private forgotPasswordUseCase: ForgotPasswordUseCase,       
+            private verifyResetCodeUseCase: VerifyResetCodeUseCase,    
+            private resetPasswordUseCase: ResetPasswordUseCase,
     ) {}
     
     @Post('register')
@@ -124,4 +133,41 @@ export class AuthController {
         throw new HttpException('Error al iniciar sesión con Google', HttpStatus.INTERNAL_SERVER_ERROR);
     }
     }
+
+    @Post('forgot-password')
+@ApiOperation({ summary: 'Solicitar código de restablecimiento de contraseña' })
+@ApiBody({ type: ForgotPasswordDto })
+@ApiResponse({ status: 200, description: 'Código enviado si el correo existe' })
+async forgotPassword(@Body() dto: ForgotPasswordDto) {
+  const result = await this.forgotPasswordUseCase.execute(dto);
+  if (result.isFailure) {
+    throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
+  }
+  // Siempre mismo mensaje para no revelar si el email existe
+  return { message: 'Si el correo está registrado, recibirás un código' };
+}
+
+@Post('verify-reset-code')
+@ApiOperation({ summary: 'Verificar código de restablecimiento' })
+@ApiBody({ type: VerifyResetCodeDto })
+@ApiResponse({ status: 200, description: 'Código válido' })
+async verifyResetCode(@Body() dto: VerifyResetCodeDto) {
+  const result = await this.verifyResetCodeUseCase.execute(dto);
+  if (result.isFailure) {
+    throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
+  }
+  return { message: 'Código válido' };
+}
+
+@Post('reset-password')
+@ApiOperation({ summary: 'Restablecer contraseña con código' })
+@ApiBody({ type: ResetPasswordDto })
+@ApiResponse({ status: 200, description: 'Contraseña actualizada correctamente' })
+async resetPassword(@Body() dto: ResetPasswordDto) {
+  const result = await this.resetPasswordUseCase.execute(dto);
+  if (result.isFailure) {
+    throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
+  }
+  return { message: 'Contraseña actualizada correctamente' };
+}
 }
