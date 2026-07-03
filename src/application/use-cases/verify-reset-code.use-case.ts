@@ -11,8 +11,9 @@ export class VerifyResetCodeUseCase {
     try {
       await this.usuarioService.verificarResetCodigo(dto.email, dto.code);
       return Result.ok(undefined);
-    } catch (error) {
-      return Result.fail(error);
+    } catch {
+
+      return Result.fail(new Error('Ocurrió un error desconocido al verificar el código.'));
     }
   }
 }

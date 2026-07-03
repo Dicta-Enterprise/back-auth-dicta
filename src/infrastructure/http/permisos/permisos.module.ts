@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PermisosController } from './permisos.controller';
-import { PERMISO_REPOSITORY, DETALLE_PERMISO_REPOSITORY } from 'src/core/constants/constants';
+import { DETALLE_PERMISO_REPOSITORY, PERMISO_REPOSITORY } from 'src/core/constants/constants';
 import { PermisoPrismaRepository } from 'src/infrastructure/persistence/permiso/permiso.prisma.repository';
 import { DetallePermisoPrismaRepository } from 'src/infrastructure/persistence/detallepermiso/detalle-permiso.prisma.repository';
 import { PermisoService } from 'src/core/services/permiso/permiso.service';

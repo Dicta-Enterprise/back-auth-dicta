@@ -21,8 +21,8 @@ export class GoogleUseCase {
       });
 
       return Result.ok(accessToken);
-    } catch (error) {
-      return Result.fail(error);
+    } catch{
+      return Result.fail(new Error('Ocurrió un error desconocido durante el login con Google.'));
     }
   }
 }

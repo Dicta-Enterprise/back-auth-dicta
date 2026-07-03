@@ -11,8 +11,8 @@ export class GetProfilesUseCase {
        try {
             const perfiles = await this.perfilService.verPerfil(userId);
             return Result.ok(perfiles); 
-        } catch (error) {
-            return Result.fail(new Error(error.message));
+        } catch {
+            return Result.fail(new Error('Ocurrió un error desconocido al obtener los perfiles.'));
         }
-}
+    }
 }

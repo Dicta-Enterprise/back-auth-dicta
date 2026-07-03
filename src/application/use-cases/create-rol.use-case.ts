@@ -12,8 +12,8 @@ export class CreateRolUseCase {
     try {
       const rol = await this.rolService.crearRol(dto);
       return Result.ok(rol);
-    } catch (error) {
-      return Result.fail(error);
+    } catch {
+      return Result.fail(new Error('Ocurrió un error desconocido al crear el rol.'));
     }
   }
 }

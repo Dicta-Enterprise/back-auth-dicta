@@ -1,5 +1,6 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import { Response } from 'express';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateRolDto } from 'src/application/dto/create-rol.dto';
 import { CreateRolUseCase } from 'src/application/use-cases/create-rol.use-case';
 import { RegistrarRolesBaseUseCase } from 'src/application/use-cases/registrar-roles-base.use-case';
@@ -52,7 +53,7 @@ export class RolesController {
   @ApiResponse({ status: 200, description: 'Proceso completado.' })
   @ApiResponse({ status: 201, description: 'Roles creados por primera vez.' })
   @ApiResponse({ status: 400, description: 'Error al registrar roles.' })
-  async registrarRolesBase() {
+  async registrarRolesBase(@Res() res: Response) {
     const result = await this.registrarRolesBaseUseCase.execute();
     if (result.isFailure) {
       throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
@@ -63,7 +64,7 @@ export class RolesController {
     // Determinar el código de estado HTTP
     const statusCode = creados.length > 0 && existentes.length === 0 ? HttpStatus.CREATED : HttpStatus.OK;
     
-    return {
+    return res.status(statusCode).json({
       data: {
         roles: todos.map(rol => ({
           id: rol.id,
@@ -79,7 +80,7 @@ export class RolesController {
         }
       },
       message: mensaje
-    };
+    });
   }
 
   @Get()

@@ -16,8 +16,8 @@ export class RegistrarRolesBaseUseCase {
     try {
       const resultado = await this.rolService.registrarRolesBase();
       return Result.ok(resultado);
-    } catch (error) {
-      return Result.fail(error);
-    }
+    } catch {
+      return Result.fail(new Error('Ocurrió un error desconocido al registrar roles base.'));
+    }  
   }
 }

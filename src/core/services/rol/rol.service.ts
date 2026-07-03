@@ -77,7 +77,6 @@ export class RolService {
           }
         }
       } catch (error) {
-        console.error(`Error al procesar rol ${rolData.nombreRol}:`, error.message);
         throw error;
       }
     }
