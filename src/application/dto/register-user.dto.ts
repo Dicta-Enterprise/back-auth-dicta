@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsStrongPassword,
@@ -7,6 +9,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { IsAllowedEmail } from 'src/shared/decorator/is-allowed-email.decorator';
+
 
 export class RegisterUserDto {
   @ApiProperty({
@@ -51,4 +54,15 @@ export class RegisterUserDto {
   @IsNotEmpty({ message: 'La confirmación de contraseña es requerida' })
   @MinLength(8, { message: 'La confirmación debe tener mínimo 8 caracteres' })
   confirmPassword: string;
+
+
+@ApiProperty({
+  example: true,
+  description: 'Aceptación de términos y condiciones',
+  default: false,
+})
+@Transform(({ value }) => value === true || value === 'true')
+@IsBoolean()
+@IsNotEmpty({ message: 'La aceptación de términos es requerida' })
+acceptTerms: boolean = false;
 }

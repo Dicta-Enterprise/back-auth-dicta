@@ -49,6 +49,10 @@ export class UsuariosService {
       hashedPassword,
       1,
       new Date(),
+      'LOCAL',
+      null,
+      null,
+      dtoUsuario.acceptTerms
     );
 
     const creado = await this.repository.create(usuario);
