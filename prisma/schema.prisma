@@ -153,7 +153,7 @@ model usuarios {
   password             String?   @db.VarChar(255)
   fechadecreacion      DateTime?
   estado               Int?      @db.SmallInt
-  idrol                Int?      @default(3)
+  idrol                Int?      @default(4)
   googleId             String?   @unique
   orden                orden[]
   perfil               perfil[]
@@ -162,6 +162,9 @@ model usuarios {
   reset_code           String?   @db.VarChar(6)
   reset_code_expires   DateTime? @db.Timestamp(6)
   reset_attempts       Int       @default(0)
+  verify_code          String?   @db.VarChar(6)       
+  verify_code_expires  DateTime? @db.Timestamp(6)      
+  verify_attempts      Int       @default(0)             
   rol                  rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 

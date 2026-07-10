@@ -19,7 +19,8 @@ import { VerifyResetCodeUseCase } from 'src/application/use-cases/verify-reset-c
 import { ResetPasswordUseCase } from 'src/application/use-cases/reset-password.use-case';
 import { VerifyResetCodeDto } from 'src/application/dto/verify-reset-code.dto';
 import { ResetPasswordDto } from 'src/application/dto/reset-password.dto';
-
+import { VerifyEmailUseCase } from 'src/application/use-cases/verify-email.use-case';
+import { VerifyEmailDto } from 'src/application/dto/verify-email.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -31,6 +32,7 @@ export class AuthController {
             private forgotPasswordUseCase: ForgotPasswordUseCase,       
             private verifyResetCodeUseCase: VerifyResetCodeUseCase,    
             private resetPasswordUseCase: ResetPasswordUseCase,
+            private verifyEmailUseCase: VerifyEmailUseCase,
     ) {}
     
     @Post('register')
@@ -169,5 +171,17 @@ async resetPassword(@Body() dto: ResetPasswordDto) {
     throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
   }
   return { message: 'Contraseña actualizada correctamente' };
+}
+
+@Post('verify-email')
+@ApiOperation({ summary: 'Verificar correo electrónico con código' })
+@ApiBody({ type: VerifyEmailDto })
+@ApiResponse({ status: 200, description: 'Correo verificado correctamente' })
+async verifyEmail(@Body() dto: VerifyEmailDto) {
+  const result = await this.verifyEmailUseCase.execute(dto);
+  if (result.isFailure) {
+    throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
+  }
+  return { message: 'Correo verificado correctamente. Ya puedes iniciar sesión.' };
 }
 }

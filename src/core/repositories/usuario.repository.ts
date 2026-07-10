@@ -8,4 +8,8 @@ export interface UsuarioRepository {
     saveResetCode(id: number, code: string, expires: Date): Promise<void>;
     updatePassword(id: number, hashedPassword: string): Promise<void>; 
     incrementResetAttempts(id: number): Promise<void>;
+    saveVerifyCode(id: number, code: string, expires: Date): Promise<void>;   
+    activarUsuario(id: number): Promise<void>;                                
+    incrementVerifyAttempts(id: number): Promise<void>;                        
+    eliminarUsuario(id: number): Promise<void>;
 }

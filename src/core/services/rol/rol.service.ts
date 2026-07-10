@@ -48,6 +48,7 @@ export class RolService {
       { id: 1, nombreRol: 'Administrador', descripcion: 'Rol con acceso total al sistema', tipo: 'admin', estado: 1 },
       { id: 2, nombreRol: 'Trabajador', descripcion: 'Rol para empleados del sistema', tipo: 'employee', estado: 1 },
       { id: 3, nombreRol: 'Cliente', descripcion: 'Rol para clientes del sistema', tipo: 'customer', estado: 1 },
+      { id: 4, nombreRol: 'UsuarioPendiente', descripcion: 'Rol temporal hasta verificar correo electrónico', tipo: 'pending', estado: 1 },
     ];
 
     const rolesCreados: Rol[] = [];
@@ -83,11 +84,11 @@ export class RolService {
 
     // Determinar el mensaje según el resultado
     let mensaje = '';
-    if (rolesCreados.length === 0 && rolesExistentes.length === 3) {
+    if (rolesCreados.length === 0 && rolesExistentes.length === 4) {
       mensaje = 'Los roles base ya estaban registrados anteriormente. No se insertaron nuevos roles.';
     } else if (rolesCreados.length > 0 && rolesExistentes.length > 0) {
       mensaje = `Roles registrados parcialmente. Se crearon ${rolesCreados.length} rol(es) y ${rolesExistentes.length} ya existían.`;
-    } else if (rolesCreados.length === 3) {
+    } else if (rolesCreados.length === 4) {
       mensaje = 'Roles base registrados con éxito por primera vez.';
     } else {
       mensaje = `Proceso completado. ${rolesCreados.length} rol(es) creado(s), ${rolesExistentes.length} ya existían.`;
