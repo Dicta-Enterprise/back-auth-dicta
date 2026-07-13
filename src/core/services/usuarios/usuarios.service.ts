@@ -209,7 +209,6 @@ async verificarResetCodigo(email: string, code: string): Promise<void> {
     throw new BussinesRuleException('Código inválido', HttpStatus.BAD_REQUEST);
   }
 
-  // Verificar límite de intentos
   if (usuario.resetAttempts >= 5) {
     throw new BussinesRuleException(
       'Demasiados intentos fallidos. Solicita un nuevo código.',
@@ -217,12 +216,10 @@ async verificarResetCodigo(email: string, code: string): Promise<void> {
     );
   }
 
-  // Verificar expiración primero
   if (!usuario.resetCodeExpires || usuario.resetCodeExpires < new Date()) {
     throw new BussinesRuleException('El código ha expirado', HttpStatus.BAD_REQUEST);
   }
 
-  // Verificar código — si es incorrecto, incrementar intentos
   if (usuario.resetCode !== code) {
     await this.repository.incrementResetAttempts(Number(usuario.id));
     this.logger.warn(
@@ -265,7 +262,7 @@ async resetPassword(dto: ResetPasswordDto): Promise<void> {
 
 async enviarCodigoVerificacion(usuario: Usuario): Promise<void> {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expires = new Date(Date.now() + 1 * 60 * 1000); 
+  const expires = new Date(Date.now() + 10 * 60 * 1000); 
 
   await this.repository.saveVerifyCode(Number(usuario.id), code, expires);
 
@@ -298,9 +295,8 @@ async verificarEmail(email: string, code: string): Promise<void> {
     throw new BussinesRuleException('Código inválido', HttpStatus.BAD_REQUEST);
   }
 
-  // Verificar límite de intentos
   if ((usuario.verifyAttempts ?? 0) >= 5) {
-    await this.repository.eliminarUsuario(Number(usuario.id)); // 👈 eliminar
+    await this.repository.eliminarUsuario(Number(usuario.id)); 
     this.logger.warn(`Usuario ${email} eliminado por demasiados intentos fallidos`);
     throw new BussinesRuleException(
       'Demasiados intentos fallidos. Por favor regístrate nuevamente.',
@@ -309,7 +305,6 @@ async verificarEmail(email: string, code: string): Promise<void> {
     );
   }
 
-  // Verificar expiración — si expiró, eliminar usuario
   if (!usuario.verifyCodeExpires || usuario.verifyCodeExpires < new Date()) {
     await this.repository.eliminarUsuario(Number(usuario.id));
     this.logger.warn(`Usuario ${email} eliminado por código de verificación expirado`);
@@ -320,7 +315,6 @@ async verificarEmail(email: string, code: string): Promise<void> {
     );
   }
 
-  // Verificar código — si es incorrecto, incrementar intentos
   if (usuario.verifyCode !== code) {
     await this.repository.incrementVerifyAttempts(Number(usuario.id));
     this.logger.warn(
