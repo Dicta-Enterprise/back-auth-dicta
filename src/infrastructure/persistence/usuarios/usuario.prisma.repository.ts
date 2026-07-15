@@ -67,4 +67,42 @@ async incrementResetAttempts(id: number): Promise<void> {
     },
   });
 }
+
+async saveVerifyCode(id: number, code: string, expires: Date): Promise<void> {
+  await this.prisma.usuarios.update({
+    where: { id },
+    data: {
+      verify_code: code,
+      verify_code_expires: expires,
+      verify_attempts: 0,
+    },
+  });
+}
+
+async activarUsuario(id: number): Promise<void> {
+  await this.prisma.usuarios.update({
+    where: { id },
+    data: {
+      idrol: 3,             // Cliente
+      verify_code: null,
+      verify_code_expires: null,
+      verify_attempts: 0,
+    },
+  });
+}
+
+async incrementVerifyAttempts(id: number): Promise<void> {
+  await this.prisma.usuarios.update({
+    where: { id },
+    data: {
+      verify_attempts: { increment: 1 },
+    },
+  });
+}
+
+async eliminarUsuario(id: number): Promise<void> {
+  await this.prisma.usuarios.delete({
+    where: { id },
+  });
+}
 }

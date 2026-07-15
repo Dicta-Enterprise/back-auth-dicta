@@ -13,9 +13,9 @@ export class RegisterUserUseCase {
       const usuario = await this.usuarioService.crearUsuario(dto);
       return Result.ok<Usuario>(usuario);
       
-    } catch {
-      return Result.fail(new Error('Ocurrió un error durante el registro de usuario.'));
-    }  
+    } catch (error) {
+      return Result.fail(error);
+    }
   }
 }
 

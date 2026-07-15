@@ -83,6 +83,8 @@ export class UsuariosService {
       }
     }
 
+    await this.enviarCodigoVerificacion(creado);
+
     return creado;
   }
     async crearUsuarioGoogle(dto: GoogleLoginDto): Promise<Usuario> {
@@ -139,12 +141,25 @@ export class UsuariosService {
    async findByGoogleId(googleId: string): Promise<Usuario> {
     return this.repository.findByGoogleId(googleId);
   }
-  async validateLocalUser(email: string, password: string): Promise<Usuario> {
+
+async validateLocalUser(email: string, password: string): Promise<Usuario> {
   const usuario = await this.findByEmail(email);
   if (!usuario) throw new UnauthorizedException('Credenciales inválidas');
   if (usuario.authProvider === 'GOOGLE') throw new UnauthorizedException('Credenciales inválidas');
+
   const ok = await bcrypt.compare(password, usuario.password);
   if (!ok) throw new UnauthorizedException('Credenciales inválidas');
+
+  if (usuario.idrol === 4) {
+    if (!usuario.verifyCodeExpires || usuario.verifyCodeExpires < new Date()) {
+      await this.repository.eliminarUsuario(Number(usuario.id));
+      this.logger.warn(`Usuario ${email} eliminado por registro expirado al intentar login`);
+      throw new UnauthorizedException(
+        'Tu registro ha expirado. Por favor regístrate nuevamente.',
+      );
+    }
+    throw new UnauthorizedException('Debes verificar tu correo electrónico antes de iniciar sesión.');
+  }
 
   return usuario;
 }
@@ -194,7 +209,6 @@ async verificarResetCodigo(email: string, code: string): Promise<void> {
     throw new BussinesRuleException('Código inválido', HttpStatus.BAD_REQUEST);
   }
 
-  // Verificar límite de intentos
   if (usuario.resetAttempts >= 5) {
     throw new BussinesRuleException(
       'Demasiados intentos fallidos. Solicita un nuevo código.',
@@ -202,12 +216,10 @@ async verificarResetCodigo(email: string, code: string): Promise<void> {
     );
   }
 
-  // Verificar expiración primero
   if (!usuario.resetCodeExpires || usuario.resetCodeExpires < new Date()) {
     throw new BussinesRuleException('El código ha expirado', HttpStatus.BAD_REQUEST);
   }
 
-  // Verificar código — si es incorrecto, incrementar intentos
   if (usuario.resetCode !== code) {
     await this.repository.incrementResetAttempts(Number(usuario.id));
     this.logger.warn(
@@ -246,5 +258,73 @@ async resetPassword(dto: ResetPasswordDto): Promise<void> {
 
   await this.repository.updatePassword(Number(usuario.id), hashedPassword);
   this.logger.log(`Contraseña actualizada para: ${dto.email}`);
+}
+
+async enviarCodigoVerificacion(usuario: Usuario): Promise<void> {
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expires = new Date(Date.now() + 10 * 60 * 1000); 
+
+  await this.repository.saveVerifyCode(Number(usuario.id), code, expires);
+
+  try {
+    await this.mailerService.enviar({
+      to: usuario.email,
+      nombreUsuario: usuario.username,
+      subject: 'Verifica tu correo electrónico',
+      templateId: this.config.get<number>('BREVO_TEMPLATE_VERIFY_EMAIL'),
+      context: {
+        nombreUsuario: usuario.username,
+        verifyCode: code,
+        year: new Date().getFullYear(),
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      this.logger.error(
+        `Error al enviar código de verificación a ${usuario.email}: ${error.message}`,
+        error.stack,
+      );
+    }
+  }
+}
+
+async verificarEmail(email: string, code: string): Promise<void> {
+  const usuario = await this.repository.findByEmail(email);
+
+  if (!usuario || !usuario.verifyCode) {
+    throw new BussinesRuleException('Código inválido', HttpStatus.BAD_REQUEST);
+  }
+
+  if ((usuario.verifyAttempts ?? 0) >= 5) {
+    await this.repository.eliminarUsuario(Number(usuario.id)); 
+    this.logger.warn(`Usuario ${email} eliminado por demasiados intentos fallidos`);
+    throw new BussinesRuleException(
+      'Demasiados intentos fallidos. Por favor regístrate nuevamente.',
+      HttpStatus.TOO_MANY_REQUESTS,
+      { codigoError: 'TOO_MANY_ATTEMPTS' },
+    );
+  }
+
+  if (!usuario.verifyCodeExpires || usuario.verifyCodeExpires < new Date()) {
+    await this.repository.eliminarUsuario(Number(usuario.id));
+    this.logger.warn(`Usuario ${email} eliminado por código de verificación expirado`);
+    throw new BussinesRuleException(
+      'El código ha expirado. Por favor regístrate nuevamente.',
+      HttpStatus.BAD_REQUEST,
+      { codigoError: 'VERIFY_CODE_EXPIRED' },
+    );
+  }
+
+  if (usuario.verifyCode !== code) {
+    await this.repository.incrementVerifyAttempts(Number(usuario.id));
+    this.logger.warn(
+      `Intento fallido de verificación para ${email}. Intentos: ${(usuario.verifyAttempts ?? 0) + 1}/5`,
+    );
+    throw new BussinesRuleException('Código inválido', HttpStatus.BAD_REQUEST);
+  }
+
+  // Activar cuenta
+  await this.repository.activarUsuario(Number(usuario.id));
+  this.logger.log(`Correo verificado y cuenta activada para: ${email}`);
 }
 }

@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { UsuariosService } from 'src/core/services/usuarios/usuarios.service';
-import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { Result } from 'src/shared/domain/result/result';
 
 @Injectable()
-export class ForgotPasswordUseCase {
+export class VerifyEmailUseCase {
   constructor(private readonly usuarioService: UsuariosService) {}
 
-  async execute(dto: ForgotPasswordDto): Promise<Result<void>> {
+  async execute(dto: VerifyEmailDto): Promise<Result<void>> {
     try {
-      await this.usuarioService.solicitarResetCodigo(dto.email);
+      await this.usuarioService.verificarEmail(dto.email, dto.code);
       return Result.ok(undefined);
     } catch (error) {
       return Result.fail(error);

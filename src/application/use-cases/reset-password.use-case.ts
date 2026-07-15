@@ -11,8 +11,8 @@ export class ResetPasswordUseCase {
     try {
       await this.usuarioService.resetPassword(dto);
       return Result.ok(undefined);
-    } catch {
-      return Result.fail(new Error('Ocurrió un error desconocido al restablecer la contraseña.'));
+    } catch (error) {
+      return Result.fail(error);
     }
   }
 }

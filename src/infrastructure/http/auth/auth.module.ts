@@ -23,6 +23,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ForgotPasswordUseCase } from 'src/application/use-cases/forgot-password.use-case';
 import { VerifyResetCodeUseCase } from 'src/application/use-cases/verify-reset-code.use-case';
 import { ResetPasswordUseCase } from 'src/application/use-cases/reset-password.use-case';
+import { VerifyEmailUseCase } from 'src/application/use-cases/verify-email.use-case';
 
 @Module({
   imports: [
@@ -54,7 +55,8 @@ import { ResetPasswordUseCase } from 'src/application/use-cases/reset-password.u
     LocalStrategy,
     ForgotPasswordUseCase,     
     VerifyResetCodeUseCase,    
-    ResetPasswordUseCase,  
+    ResetPasswordUseCase,
+    VerifyEmailUseCase,
   ],
 })
 export class AuthModule {}
