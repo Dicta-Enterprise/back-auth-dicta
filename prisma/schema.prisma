@@ -45,25 +45,9 @@ model detalleorden {
   orden   orden   @relation(fields: [idorden], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_detalleorden_orden")
 }
 
-model documentospago {
-  id            Int       @id @default(autoincrement())
-  idpago        Int       @unique(map: "uq_documentospago_idpago")
-  tipo          String    @db.VarChar(50)
-  fechasubida   DateTime  @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @db.Timestamp(6)
-  pdfurl        String?   @db.VarChar(500)
-  xmlurl        String?   @db.VarChar(500)
-  cdrurl        String?   @db.VarChar(500)
-  estado        Int       @default(1) @db.SmallInt
-  fechacreacion DateTime  @default(now()) @db.Timestamp(6)
-  fechaupdate   DateTime? @db.Timestamp(6)
-  pagos         pagos     @relation(fields: [idpago], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_documentospago_pagos")
-}
-
 model orden {
   id            Int            @id @default(autoincrement())
   idusuario     Int
-  montototal    Decimal        @db.Decimal(12, 2)
-  moneda        String         @db.VarChar(10)
   fechacreacion DateTime       @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @db.Timestamp(6)
   estado        String         @db.VarChar(20)
   detalleorden  detalleorden[]
@@ -74,16 +58,14 @@ model orden {
 model pagos {
   id             Int             @id @default(autoincrement())
   idorden        Int             @unique(map: "uq_pagos_idorden")
-  metodopago     String          @db.VarChar(50)
+  metodopago     String          @db.VarChar(10)
   fechapago      DateTime        @db.Timestamp(6)
   monto          Decimal         @db.Decimal(12, 2)
-  estado         String          @db.VarChar(20)
-  nrcompra       Int?
+  estado         String          @default("PENDIENTE")
+  nrcompra       Int?            @default(autoincrement())
   tipotarjeta    String?         @db.VarChar(20)
-  nrtarjeta      String?         @db.VarChar(20)
   nombrepagante  String?         @db.VarChar(100)
   emailpagante   String?         @db.VarChar(150)
-  documentospago documentospago?
   orden          orden           @relation(fields: [idorden], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_pagos_orden")
 }
 
