@@ -1,307 +1,477 @@
-/* Dicta BD - alineado con prisma/schema.prisma (PostgreSQL) */
-/****** Object:  UserDefinedFunction [dbo].[calculito_Mora]    Script Date: 30/09/2025 12:09:45 ******/
-CREATE OR REPLACE FUNCTION calculito_Mora(V_fecha1 date, V_fecha2 date)
-RETURNS numeric(9,2)
-LANGUAGE plpgsql
-AS $BODY$
-DECLARE
-  V_tasa numeric(9,2);
-  V_mora numeric(9,2);
-BEGIN
-  SELECT TasaLegal/100 INTO V_tasa FROM PARAMETRO WHERE activo = 1;
-  IF V_fecha1 > V_fecha2 THEN
-    V_mora := 0;
-  ELSE
-    V_mora := DATE_PART('day', V_fecha2 - V_fecha1) * V_tasa;
-  END IF;
-  RETURN V_mora;
-END;
-$BODY$;
-
-/****** Table: pais ******/
-CREATE TABLE pais (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  nombre varchar(80) NOT NULL,
-  estado smallint NOT NULL DEFAULT 1,
-  fechacreacion timestamp(6) NOT NULL DEFAULT (now()),
-  fechaactualizar timestamp(6) NULL,
-  CONSTRAINT pais_pkey PRIMARY KEY (id)
-);
-
-/****** Table: rol (id sin autoincremento; valores explicitos) ******/
-CREATE TABLE rol (
-  id integer NOT NULL,
-  nombrerol varchar(50) NULL,
-  estado smallint NULL,
-  descripcion varchar(200) NULL,
-  tipo varchar(50) NULL,
-  CONSTRAINT rol_pkey PRIMARY KEY (id)
-);
-
-/****** Table: accesos ******/
 CREATE TABLE accesos (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  codigo varchar(50) NOT NULL,
-  descripcion varchar(200) NULL,
-  estado smallint NULL DEFAULT 1,
-  CONSTRAINT accesos_pkey PRIMARY KEY (id),
-  CONSTRAINT accesos_codigo_key UNIQUE (codigo)
+    id integer NOT NULL,
+    codigo character varying(50) NOT NULL,
+    descripcion character varying(200),
+    estado smallint DEFAULT 1
 );
 
-/****** Table: permiso ******/
-CREATE TABLE permiso (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  codigo varchar(50) NOT NULL,
-  nombre varchar(100) NOT NULL,
-  descripcion varchar(200) NULL,
-  estado smallint NOT NULL DEFAULT 1,
-  CONSTRAINT permiso_pkey PRIMARY KEY (id),
-  CONSTRAINT permiso_codigo_key UNIQUE (codigo)
+CREATE SEQUENCE accesos_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE accesos_id_seq OWNED BY accesos.id;
+
+CREATE TABLE carrito (
+    id integer NOT NULL,
+    idusuario integer NOT NULL,
+    createdat timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updatedat timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-/****** Table: departamento ******/
+CREATE TABLE "carritoCurso" (
+    id integer NOT NULL,
+    "carritoId" integer NOT NULL,
+    idcurso character(24) NOT NULL,
+    nombrecurso character varying(150)
+);
+
+CREATE SEQUENCE "carritoCurso_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE "carritoCurso_id_seq" OWNED BY "carritoCurso".id;
+
+CREATE SEQUENCE carrito_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE carrito_id_seq OWNED BY carrito.id;
+
 CREATE TABLE departamento (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  idpais integer NOT NULL,
-  nombre varchar(80) NOT NULL,
-  estado smallint NOT NULL DEFAULT 1,
-  fechacreacion timestamp(6) NOT NULL DEFAULT (now()),
-  fechaactualizar timestamp(6) NULL,
-  CONSTRAINT departamento_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_departamento_pais FOREIGN KEY (idpais) REFERENCES pais (id) ON UPDATE NO ACTION ON DELETE NO ACTION
+    id integer NOT NULL,
+    idpais integer NOT NULL,
+    nombre character varying(80) NOT NULL,
+    estado smallint DEFAULT 1 NOT NULL,
+    fechacreacion timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fechaactualizar timestamp(6) without time zone
 );
 
-/****** Table: provincia ******/
-CREATE TABLE provincia (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  iddepartamento integer NOT NULL,
-  nombre varchar(80) NOT NULL,
-  estado smallint NOT NULL DEFAULT 1,
-  fechacreacion timestamp(6) NOT NULL DEFAULT (now()),
-  fechaactualizar timestamp(6) NULL,
-  CONSTRAINT provincia_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_provincia_departamento FOREIGN KEY (iddepartamento) REFERENCES departamento (id) ON UPDATE NO ACTION ON DELETE NO ACTION
-);
+CREATE SEQUENCE departamento_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
-/****** Table: usuarios ******/
-CREATE TABLE usuarios (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  username varchar(50) NOT NULL,
-  email varchar(150) NOT NULL,
-  auth_provider varchar(20) NOT NULL DEFAULT 'LOCAL',
-  "password" varchar(255) NULL,
-  fechadecreacion timestamp(6) NULL,
-  estado smallint NULL,
-  idrol integer NULL DEFAULT 3,
-  "googleId" text NULL,
-  reset_code varchar(6) NULL,
-  reset_code_expires timestamp(6) NULL,
-  reset_attempts integer NOT NULL DEFAULT 0,
-  CONSTRAINT usuarios_pkey PRIMARY KEY (id),
-  CONSTRAINT usuarios_email_key UNIQUE (email),
-  CONSTRAINT usuarios_googleId_key UNIQUE ("googleId"),
-  CONSTRAINT usuarios_idrol_fkey FOREIGN KEY (idrol) REFERENCES rol (id) ON UPDATE NO ACTION ON DELETE NO ACTION
-);
+ALTER SEQUENCE departamento_id_seq OWNED BY departamento.id;
 
-/****** Table: perfil ******/
-CREATE TABLE perfil (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  nombre varchar(50) NULL,
-  "password" varchar(255) NULL,
-  estado smallint NULL,
-  imageurl text NULL,
-  idusuario integer NULL,
-  idrol integer NULL,
-  CONSTRAINT perfil_pkey PRIMARY KEY (id),
-  CONSTRAINT perfil_idrol_fkey FOREIGN KEY (idrol) REFERENCES rol (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT perfil_idusuario_fkey FOREIGN KEY (idusuario) REFERENCES usuarios (id) ON UPDATE NO ACTION ON DELETE NO ACTION
-);
-
-/****** Table: persona ******/
-CREATE TABLE persona (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  nombre varchar(50) NULL,
-  apellidopat varchar(50) NULL,
-  apellidomat varchar(50) NULL,
-  documento integer NULL,
-  telefono integer NULL,
-  idusuario integer NULL,
-  codigopostal varchar(10) NULL,
-  idpais integer NULL,
-  CONSTRAINT persona_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_persona_pais FOREIGN KEY (idpais) REFERENCES pais (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT persona_idusuario_fkey FOREIGN KEY (idusuario) REFERENCES usuarios (id) ON UPDATE NO ACTION ON DELETE NO ACTION
-);
-
-/****** Table: orden ******/
-CREATE TABLE orden (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  idusuario integer NOT NULL,
-  montototal decimal(12, 2) NOT NULL,
-  moneda varchar(10) NOT NULL,
-  fechacreacion timestamp(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc'),
-  estado varchar(20) NOT NULL,
-  CONSTRAINT orden_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_orden_usuarios FOREIGN KEY (idusuario) REFERENCES usuarios (id) ON UPDATE NO ACTION ON DELETE NO ACTION
-);
-
-/****** Table: pagos ******/
-CREATE TABLE pagos (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  idorden integer NOT NULL,
-  metodopago varchar(50) NOT NULL,
-  fechapago timestamp(6) NOT NULL,
-  monto decimal(12, 2) NOT NULL,
-  estado varchar(20) NOT NULL,
-  nrcompra integer NULL,
-  tipotarjeta varchar(20) NULL,
-  nrtarjeta varchar(20) NULL,
-  nombrepagante varchar(100) NULL,
-  emailpagante varchar(150) NULL,
-  CONSTRAINT pagos_pkey PRIMARY KEY (id),
-  CONSTRAINT uq_pagos_idorden UNIQUE (idorden),
-  CONSTRAINT fk_pagos_orden FOREIGN KEY (idorden) REFERENCES orden (id) ON UPDATE NO ACTION ON DELETE NO ACTION
-);
-
-/****** Table: documentospago ******/
-CREATE TABLE documentospago (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  idpago integer NOT NULL,
-  tipo varchar(50) NOT NULL,
-  fechasubida timestamp(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc'),
-  pdfurl varchar(500) NULL,
-  xmlurl varchar(500) NULL,
-  cdrurl varchar(500) NULL,
-  estado smallint NOT NULL DEFAULT 1,
-  fechacreacion timestamp(6) NOT NULL DEFAULT (now()),
-  fechaupdate timestamp(6) NULL,
-  CONSTRAINT documentospago_pkey PRIMARY KEY (id),
-  CONSTRAINT uq_documentospago_idpago UNIQUE (idpago),
-  CONSTRAINT fk_documentospago_pagos FOREIGN KEY (idpago) REFERENCES pagos (id) ON UPDATE NO ACTION ON DELETE NO ACTION
-);
-
-/****** Table: detalleorden ******/
-CREATE TABLE detalleorden (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  idorden integer NOT NULL,
-  idcurso char(24) NOT NULL,
-  precio decimal(12, 2) NOT NULL,
-  CONSTRAINT detalleorden_pkey PRIMARY KEY (id),
-  CONSTRAINT fk_detalleorden_orden FOREIGN KEY (idorden) REFERENCES orden (id) ON UPDATE NO ACTION ON DELETE CASCADE
-);
-
-/****** Table: detalle_accesos ******/
 CREATE TABLE detalle_accesos (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  idrol integer NOT NULL,
-  idacceso integer NOT NULL,
-  CONSTRAINT detalle_accesos_pkey PRIMARY KEY (id),
-  CONSTRAINT detalle_accesos_idrol_idacceso_key UNIQUE (idrol, idacceso),
-  CONSTRAINT detalle_accesos_idacceso_fkey FOREIGN KEY (idacceso) REFERENCES accesos (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT detalle_accesos_idrol_fkey FOREIGN KEY (idrol) REFERENCES rol (id) ON UPDATE CASCADE ON DELETE RESTRICT
+    id integer NOT NULL,
+    idrol integer NOT NULL,
+    idacceso integer NOT NULL
 );
 
-/****** Table: detallepermisos ******/
+CREATE SEQUENCE detalle_accesos_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE detalle_accesos_id_seq OWNED BY detalle_accesos.id;
+
+CREATE TABLE detalleorden (
+    id integer NOT NULL,
+    idorden integer NOT NULL,
+    idcurso character(24) NOT NULL,
+    precio numeric(12,2) NOT NULL,
+    nombrecurso character varying(150)
+);
+
+CREATE SEQUENCE detalleorden_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE detalleorden_id_seq OWNED BY detalleorden.id;
+
 CREATE TABLE detallepermisos (
-  id integer GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL,
-  idrol integer NOT NULL,
-  idpermiso integer NOT NULL,
-  estado smallint NOT NULL DEFAULT 1,
-  fechacreacion timestamp(6) NOT NULL DEFAULT (now()),
-  CONSTRAINT detallepermisos_pkey PRIMARY KEY (id),
-  CONSTRAINT detallepermisos_idrol_idpermiso_key UNIQUE (idrol, idpermiso),
-  CONSTRAINT detallepermisos_idpermiso_fkey FOREIGN KEY (idpermiso) REFERENCES permiso (id) ON UPDATE CASCADE ON DELETE RESTRICT,
-  CONSTRAINT detallepermisos_idrol_fkey FOREIGN KEY (idrol) REFERENCES rol (id) ON UPDATE CASCADE ON DELETE RESTRICT
+    id integer NOT NULL,
+    idrol integer NOT NULL,
+    idpermiso integer NOT NULL,
+    estado smallint DEFAULT 1 NOT NULL,
+    fechacreacion timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-/****** StoredProcedure: crearPerfil ******/
-CREATE OR REPLACE PROCEDURE crearperfil(
-  V_nombre varchar(50),
-  V_password varchar(255),
-  V_imageurl text,
-  V_idrol integer,
-  V_idusuario integer DEFAULT NULL
-)
-LANGUAGE plpgsql
-AS $BODY$
-BEGIN
-  INSERT INTO perfil (nombre, "password", imageurl, idrol, idusuario)
-  VALUES (V_nombre, V_password, V_imageurl, V_idrol, V_idusuario);
-END;
-$BODY$;
+CREATE SEQUENCE detallepermisos_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
-/****** StoredProcedure: EliminarPerfil ******/
-CREATE OR REPLACE PROCEDURE eliminarperfil(V_idperfil integer)
-LANGUAGE plpgsql
-AS $BODY$
-BEGIN
-  DELETE FROM perfil WHERE id = V_idperfil;
-END;
-$BODY$;
+ALTER SEQUENCE detallepermisos_id_seq OWNED BY detallepermisos.id;
 
-/****** StoredProcedure: EliminarUsuario ******/
-CREATE OR REPLACE PROCEDURE eliminarusuario(V_id integer)
-LANGUAGE plpgsql
-AS $BODY$
-BEGIN
-  DELETE FROM usuarios WHERE id = V_id;
-END;
-$BODY$;
+CREATE TABLE "eventoCorreo" (
+    id integer NOT NULL,
+    messageid character varying(200),
+    evento character varying(50) NOT NULL,
+    email character varying(150),
+    createdat timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
 
-/****** StoredProcedure: login_usuarios ******/
-CREATE OR REPLACE PROCEDURE login_usuarios(
-  V_email varchar(150),
-  INOUT V_rc refcursor DEFAULT NULL
-)
-LANGUAGE plpgsql
-AS $BODY$
-BEGIN
-  OPEN V_rc FOR
-  SELECT id, username, email, auth_provider, "password", fechadecreacion, estado, idrol, "googleId"
-  FROM usuarios
-  WHERE email = V_email;
-END;
-$BODY$;
+CREATE SEQUENCE "eventoCorreo_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
-/****** StoredProcedure: registrarUsuario ******/
-CREATE OR REPLACE PROCEDURE registrarusuario(
-  V_username varchar(50),
-  V_email varchar(150),
-  V_password varchar(255),
-  V_fechadecreacion timestamp(6),
-  V_estado smallint,
-  V_idrol integer,
-  V_auth_provider varchar(20) DEFAULT 'LOCAL'
-)
-LANGUAGE plpgsql
-AS $BODY$
-BEGIN
-  INSERT INTO usuarios (username, email, "password", fechadecreacion, estado, idrol, auth_provider)
-  VALUES (V_username, V_email, V_password, V_fechadecreacion, V_estado, V_idrol, V_auth_provider);
-END;
-$BODY$;
+ALTER SEQUENCE "eventoCorreo_id_seq" OWNED BY "eventoCorreo".id;
 
-/****** StoredProcedure: VisualizarPerfilesPorRol ******/
-CREATE OR REPLACE PROCEDURE visualizarperfilesporrol(
-  V_idrol integer,
-  INOUT V_rc refcursor DEFAULT NULL
-)
-LANGUAGE plpgsql
-AS $BODY$
-BEGIN
-  OPEN V_rc FOR
-  SELECT * FROM perfil WHERE idrol = V_idrol;
-END;
-$BODY$;
+CREATE TABLE orden (
+    id integer NOT NULL,
+    idusuario integer NOT NULL,
+    fechacreacion timestamp(6) without time zone DEFAULT (now() AT TIME ZONE 'utc'::text) NOT NULL,
+    estado character varying(20) NOT NULL,
+    acepto_terminos boolean DEFAULT false NOT NULL
+);
 
-/****** StoredProcedure: VisualizarUsuarios ******/
-CREATE OR REPLACE PROCEDURE visualizarusuarios(INOUT V_rc refcursor DEFAULT NULL)
-LANGUAGE plpgsql
-AS $BODY$
-BEGIN
-  OPEN V_rc FOR
-  SELECT id, username, email, auth_provider, "password", estado, idrol, "googleId"
-  FROM usuarios
-  ORDER BY id ASC;
-END;
-$BODY$;
+CREATE SEQUENCE orden_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE orden_id_seq OWNED BY orden.id;
+
+CREATE TABLE pagos (
+    id integer NOT NULL,
+    idorden integer NOT NULL,
+    metodopago character varying(10) NOT NULL,
+    fechapago timestamp(6) without time zone NOT NULL,
+    monto numeric(12,2) NOT NULL,
+    estado text DEFAULT 'PENDIENTE'::text NOT NULL,
+    nrcompra integer NOT NULL,
+    tipotarjeta character varying(20),
+    nombrepagante character varying(100),
+    emailpagante character varying(150),
+    transactionid character varying(150),
+    moneda character varying(10),
+    processing_mode text DEFAULT 'automatic'::text,
+    cufe character varying(200),
+    numero_factura character varying(50),
+    factura_url text
+);
+
+CREATE SEQUENCE pagos_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE pagos_id_seq OWNED BY pagos.id;
+
+CREATE SEQUENCE pagos_nrcompra_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE pagos_nrcompra_seq OWNED BY pagos.nrcompra;
+
+CREATE TABLE pais (
+    id integer NOT NULL,
+    nombre character varying(80) NOT NULL,
+    estado smallint DEFAULT 1 NOT NULL,
+    fechacreacion timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fechaactualizar timestamp(6) without time zone
+);
+
+CREATE SEQUENCE pais_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE pais_id_seq OWNED BY pais.id;
+
+CREATE TABLE perfil (
+    id integer NOT NULL,
+    nombre character varying(50),
+    password character varying(255),
+    estado smallint,
+    imageurl text,
+    idusuario integer,
+    idrol integer
+);
+
+CREATE SEQUENCE perfil_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE perfil_id_seq OWNED BY perfil.id;
+
+CREATE TABLE permiso (
+    id integer NOT NULL,
+    codigo character varying(50) NOT NULL,
+    nombre character varying(100) NOT NULL,
+    descripcion character varying(200),
+    estado smallint DEFAULT 1 NOT NULL
+);
+
+CREATE SEQUENCE permiso_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE permiso_id_seq OWNED BY permiso.id;
+
+CREATE TABLE persona (
+    id integer NOT NULL,
+    nombre character varying(50),
+    apellidopat character varying(50),
+    apellidomat character varying(50),
+    documento integer,
+    telefono integer,
+    idusuario integer,
+    codigopostal character varying(10),
+    idpais integer
+);
+
+CREATE SEQUENCE persona_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE persona_id_seq OWNED BY persona.id;
+
+CREATE TABLE provincia (
+    id integer NOT NULL,
+    iddepartamento integer NOT NULL,
+    nombre character varying(80) NOT NULL,
+    estado smallint DEFAULT 1 NOT NULL,
+    fechacreacion timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    fechaactualizar timestamp(6) without time zone
+);
+
+CREATE SEQUENCE provincia_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE provincia_id_seq OWNED BY provincia.id;
+
+CREATE TABLE rol (
+    id integer NOT NULL,
+    nombrerol character varying(50),
+    estado smallint,
+    descripcion character varying(200),
+    tipo character varying(50)
+);
+
+CREATE TABLE usuarios (
+    id integer NOT NULL,
+    username character varying(50) NOT NULL,
+    email character varying(150) NOT NULL,
+    auth_provider character varying(20) DEFAULT 'LOCAL'::character varying NOT NULL,
+    password character varying(255),
+    fechadecreacion timestamp(3) without time zone,
+    estado smallint,
+    idrol integer DEFAULT 4,
+    "googleId" text,
+    terminos_condiciones boolean DEFAULT false NOT NULL,
+    reset_code character varying(6),
+    reset_code_expires timestamp(6) without time zone,
+    reset_attempts integer DEFAULT 0 NOT NULL,
+    verify_code character varying(6),
+    verify_code_expires timestamp(6) without time zone,
+    verify_attempts integer DEFAULT 0 NOT NULL
+);
+
+CREATE SEQUENCE usuarios_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE usuarios_id_seq OWNED BY usuarios.id;
+
+ALTER TABLE ONLY accesos ALTER COLUMN id SET DEFAULT nextval('accesos_id_seq'::regclass);
+
+ALTER TABLE ONLY carrito ALTER COLUMN id SET DEFAULT nextval('carrito_id_seq'::regclass);
+
+ALTER TABLE ONLY "carritoCurso" ALTER COLUMN id SET DEFAULT nextval('"carritoCurso_id_seq"'::regclass);
+
+ALTER TABLE ONLY departamento ALTER COLUMN id SET DEFAULT nextval('departamento_id_seq'::regclass);
+
+ALTER TABLE ONLY detalle_accesos ALTER COLUMN id SET DEFAULT nextval('detalle_accesos_id_seq'::regclass);
+
+ALTER TABLE ONLY detalleorden ALTER COLUMN id SET DEFAULT nextval('detalleorden_id_seq'::regclass);
+
+ALTER TABLE ONLY detallepermisos ALTER COLUMN id SET DEFAULT nextval('detallepermisos_id_seq'::regclass);
+
+ALTER TABLE ONLY "eventoCorreo" ALTER COLUMN id SET DEFAULT nextval('"eventoCorreo_id_seq"'::regclass);
+
+ALTER TABLE ONLY orden ALTER COLUMN id SET DEFAULT nextval('orden_id_seq'::regclass);
+
+ALTER TABLE ONLY pagos ALTER COLUMN id SET DEFAULT nextval('pagos_id_seq'::regclass);
+
+ALTER TABLE ONLY pagos ALTER COLUMN nrcompra SET DEFAULT nextval('pagos_nrcompra_seq'::regclass);
+
+ALTER TABLE ONLY pais ALTER COLUMN id SET DEFAULT nextval('pais_id_seq'::regclass);
+
+ALTER TABLE ONLY perfil ALTER COLUMN id SET DEFAULT nextval('perfil_id_seq'::regclass);
+
+ALTER TABLE ONLY permiso ALTER COLUMN id SET DEFAULT nextval('permiso_id_seq'::regclass);
+
+ALTER TABLE ONLY persona ALTER COLUMN id SET DEFAULT nextval('persona_id_seq'::regclass);
+
+ALTER TABLE ONLY provincia ALTER COLUMN id SET DEFAULT nextval('provincia_id_seq'::regclass);
+
+ALTER TABLE ONLY usuarios ALTER COLUMN id SET DEFAULT nextval('usuarios_id_seq'::regclass);
+
+ALTER TABLE ONLY accesos
+    ADD CONSTRAINT accesos_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY "carritoCurso"
+    ADD CONSTRAINT "carritoCurso_pkey" PRIMARY KEY (id);
+
+ALTER TABLE ONLY carrito
+    ADD CONSTRAINT carrito_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY departamento
+    ADD CONSTRAINT departamento_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY detalle_accesos
+    ADD CONSTRAINT detalle_accesos_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY detalleorden
+    ADD CONSTRAINT detalleorden_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY detallepermisos
+    ADD CONSTRAINT detallepermisos_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY "eventoCorreo"
+    ADD CONSTRAINT "eventoCorreo_pkey" PRIMARY KEY (id);
+
+ALTER TABLE ONLY orden
+    ADD CONSTRAINT orden_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY pagos
+    ADD CONSTRAINT pagos_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY pais
+    ADD CONSTRAINT pais_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY perfil
+    ADD CONSTRAINT perfil_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY permiso
+    ADD CONSTRAINT permiso_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY persona
+    ADD CONSTRAINT persona_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY provincia
+    ADD CONSTRAINT provincia_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY rol
+    ADD CONSTRAINT rol_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY usuarios
+    ADD CONSTRAINT usuarios_pkey PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX accesos_codigo_key ON accesos USING btree (codigo);
+
+CREATE UNIQUE INDEX detalle_accesos_idrol_idacceso_key ON detalle_accesos USING btree (idrol, idacceso);
+
+CREATE UNIQUE INDEX detallepermisos_idrol_idpermiso_key ON detallepermisos USING btree (idrol, idpermiso);
+
+CREATE UNIQUE INDEX permiso_codigo_key ON permiso USING btree (codigo);
+
+CREATE UNIQUE INDEX uq_pagos_idorden ON pagos USING btree (idorden);
+
+CREATE UNIQUE INDEX usuarios_email_key ON usuarios USING btree (email);
+
+CREATE UNIQUE INDEX "usuarios_googleId_key" ON usuarios USING btree ("googleId");
+
+ALTER TABLE ONLY "carritoCurso"
+    ADD CONSTRAINT "carritoCurso_carritoId_fkey" FOREIGN KEY ("carritoId") REFERENCES carrito(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE ONLY detalle_accesos
+    ADD CONSTRAINT detalle_accesos_idacceso_fkey FOREIGN KEY (idacceso) REFERENCES accesos(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE ONLY detalle_accesos
+    ADD CONSTRAINT detalle_accesos_idrol_fkey FOREIGN KEY (idrol) REFERENCES rol(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE ONLY detalleorden
+    ADD CONSTRAINT detalleorden_idorden_fkey FOREIGN KEY (idorden) REFERENCES orden(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE ONLY detallepermisos
+    ADD CONSTRAINT detallepermisos_idpermiso_fkey FOREIGN KEY (idpermiso) REFERENCES permiso(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE ONLY detallepermisos
+    ADD CONSTRAINT detallepermisos_idrol_fkey FOREIGN KEY (idrol) REFERENCES rol(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE ONLY carrito
+    ADD CONSTRAINT fk_carrito_usuario FOREIGN KEY (idusuario) REFERENCES usuarios(id);
+
+ALTER TABLE ONLY departamento
+    ADD CONSTRAINT fk_departamento_pais FOREIGN KEY (idpais) REFERENCES pais(id);
+
+ALTER TABLE ONLY persona
+    ADD CONSTRAINT fk_persona_pais FOREIGN KEY (idpais) REFERENCES pais(id);
+
+ALTER TABLE ONLY provincia
+    ADD CONSTRAINT fk_provincia_departamento FOREIGN KEY (iddepartamento) REFERENCES departamento(id);
+
+ALTER TABLE ONLY orden
+    ADD CONSTRAINT orden_idusuario_fkey FOREIGN KEY (idusuario) REFERENCES usuarios(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE ONLY pagos
+    ADD CONSTRAINT pagos_idorden_fkey FOREIGN KEY (idorden) REFERENCES orden(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE ONLY perfil
+    ADD CONSTRAINT perfil_idrol_fkey FOREIGN KEY (idrol) REFERENCES rol(id);
+
+ALTER TABLE ONLY perfil
+    ADD CONSTRAINT perfil_idusuario_fkey FOREIGN KEY (idusuario) REFERENCES usuarios(id);
+
+ALTER TABLE ONLY persona
+    ADD CONSTRAINT persona_idusuario_fkey FOREIGN KEY (idusuario) REFERENCES usuarios(id);
+
+ALTER TABLE ONLY usuarios
+    ADD CONSTRAINT usuarios_idrol_fkey FOREIGN KEY (idrol) REFERENCES rol(id);
