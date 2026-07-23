@@ -6,6 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = "postgresql://postgres:123456@localhost:5432/postgres_shadow"
 }
 
 model accesos {
@@ -128,26 +129,27 @@ model rol {
 }
 
 model usuarios {
-  id                   Int       @id @default(autoincrement())
-  username             String    @db.VarChar(50)
-  email                String    @unique @db.VarChar(150)
-  auth_provider        String    @default("LOCAL") @db.VarChar(20)
-  password             String?   @db.VarChar(255)
+  id                   Int                @id @default(autoincrement())
+  username             String             @db.VarChar(50)
+  email                String             @unique @db.VarChar(150)
+  auth_provider        String             @default("LOCAL") @db.VarChar(20)
+  password             String?            @db.VarChar(255)
   fechadecreacion      DateTime?
-  estado               Int?      @db.SmallInt
-  idrol                Int?      @default(4)
-  googleId             String?   @unique
+  estado               Int?               @db.SmallInt
+  idrol                Int?               @default(4)
+  googleId             String?            @unique
   orden                orden[]
   perfil               perfil[]
   persona              persona[]
-  terminos_condiciones Boolean   @default(false)
-  reset_code           String?   @db.VarChar(6)
-  reset_code_expires   DateTime? @db.Timestamp(6)
-  reset_attempts       Int       @default(0)
-  verify_code          String?   @db.VarChar(6)       
-  verify_code_expires  DateTime? @db.Timestamp(6)      
-  verify_attempts      Int       @default(0)             
-  rol                  rol?      @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  terminos_condiciones Boolean            @default(false)
+  reset_code           String?            @db.VarChar(6)
+  reset_code_expires   DateTime?          @db.Timestamp(6)
+  reset_attempts       Int                @default(0)
+  verify_code          String?            @db.VarChar(6)       
+  verify_code_expires  DateTime?          @db.Timestamp(6)      
+  verify_attempts      Int                @default(0)             
+  rol                  rol?               @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cuenta_asociada      cuenta_asociada[]
 }
 
 model permiso {
@@ -169,4 +171,29 @@ model detallepermisos {
   rol           rol      @relation(fields: [idrol], references: [id])
 
   @@unique([idrol, idpermiso])
+}
+
+enum TipoCuentaFamiliar {
+  NINO
+  JOVEN
+}
+
+enum EstadoCuentaAsociada {
+  ACTIVA
+  INACTIVA
+}
+
+model cuenta_asociada {
+  id            Int                  @id @default(autoincrement())
+  idpadre       Int
+  idusuario     Int
+  tipocuenta    TipoCuentaFamiliar
+  alias         String?              @db.VarChar(50)
+  estado        EstadoCuentaAsociada @default(ACTIVA)
+  fechacreacion DateTime             @default(now()) @db.Timestamp(6)
+
+  usuarios      usuarios             @relation(fields: [idusuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_asociada_usuarios")
+
+  @@index([idpadre])
+  @@index([idusuario])
 }
