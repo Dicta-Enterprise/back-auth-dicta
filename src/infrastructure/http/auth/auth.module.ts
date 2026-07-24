@@ -24,6 +24,8 @@ import { ForgotPasswordUseCase } from 'src/application/use-cases/forgot-password
 import { VerifyResetCodeUseCase } from 'src/application/use-cases/verify-reset-code.use-case';
 import { ResetPasswordUseCase } from 'src/application/use-cases/reset-password.use-case';
 import { VerifyEmailUseCase } from 'src/application/use-cases/verify-email.use-case';
+import { InternalController } from './internal.controller';
+import { GetUserByIdUseCase } from 'src/application/use-cases/get-user-by-id.use-case';
 
 @Module({
   imports: [
@@ -39,7 +41,9 @@ import { VerifyEmailUseCase } from 'src/application/use-cases/verify-email.use-c
       },
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController,
+    InternalController
+  ],
   providers: [
     {
       provide: USUARIO_REPOSITORY,
@@ -57,6 +61,7 @@ import { VerifyEmailUseCase } from 'src/application/use-cases/verify-email.use-c
     VerifyResetCodeUseCase,    
     ResetPasswordUseCase,
     VerifyEmailUseCase,
+    GetUserByIdUseCase
   ],
 })
 export class AuthModule {}

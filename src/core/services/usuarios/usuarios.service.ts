@@ -327,4 +327,8 @@ async verificarEmail(email: string, code: string): Promise<void> {
   await this.repository.activarUsuario(Number(usuario.id));
   this.logger.log(`Correo verificado y cuenta activada para: ${email}`);
 }
+
+  async findById(id: number): Promise<{ id: number; username: string; email: string } | null> {
+    return this.repository.findById(id);
+  }
 }
