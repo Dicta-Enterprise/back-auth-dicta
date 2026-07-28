@@ -30,61 +30,6 @@ CREATE TABLE "departamento" (
 );
 
 -- CreateTable
-CREATE TABLE "detalleorden" (
-    "id" SERIAL NOT NULL,
-    "idorden" INTEGER NOT NULL,
-    "idcurso" CHAR(24) NOT NULL,
-    "precio" DECIMAL(12,2) NOT NULL,
-
-    CONSTRAINT "detalleorden_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "documentospago" (
-    "id" SERIAL NOT NULL,
-    "idpago" INTEGER NOT NULL,
-    "tipo" VARCHAR(50) NOT NULL,
-    "fechasubida" TIMESTAMP(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc'::text),
-    "pdfurl" VARCHAR(500),
-    "xmlurl" VARCHAR(500),
-    "cdrurl" VARCHAR(500),
-    "estado" SMALLINT NOT NULL DEFAULT 1,
-    "fechacreacion" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "fechaupdate" TIMESTAMP(6),
-
-    CONSTRAINT "documentospago_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "orden" (
-    "id" SERIAL NOT NULL,
-    "idusuario" INTEGER NOT NULL,
-    "montototal" DECIMAL(12,2) NOT NULL,
-    "moneda" VARCHAR(10) NOT NULL,
-    "fechacreacion" TIMESTAMP(6) NOT NULL DEFAULT (now() AT TIME ZONE 'utc'::text),
-    "estado" VARCHAR(20) NOT NULL,
-
-    CONSTRAINT "orden_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "pagos" (
-    "id" SERIAL NOT NULL,
-    "idorden" INTEGER NOT NULL,
-    "metodopago" VARCHAR(50) NOT NULL,
-    "fechapago" TIMESTAMP(6) NOT NULL,
-    "monto" DECIMAL(12,2) NOT NULL,
-    "estado" VARCHAR(20) NOT NULL,
-    "nrcompra" INTEGER,
-    "tipotarjeta" VARCHAR(20),
-    "nrtarjeta" VARCHAR(20),
-    "nombrepagante" VARCHAR(100),
-    "emailpagante" VARCHAR(150),
-
-    CONSTRAINT "pagos_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "pais" (
     "id" SERIAL NOT NULL,
     "nombre" VARCHAR(80) NOT NULL,
@@ -155,9 +100,15 @@ CREATE TABLE "usuarios" (
     "password" VARCHAR(255),
     "fechadecreacion" TIMESTAMP(3),
     "estado" SMALLINT,
-    "idrol" INTEGER DEFAULT 3,
+    "idrol" INTEGER DEFAULT 4,
     "googleId" TEXT,
     "terminos_condiciones" BOOLEAN NOT NULL DEFAULT false,
+    "reset_code" VARCHAR(6),
+    "reset_code_expires" TIMESTAMP(6),
+    "reset_attempts" INTEGER NOT NULL DEFAULT 0,
+    "verify_code" VARCHAR(6),
+    "verify_code_expires" TIMESTAMP(6),
+    "verify_attempts" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "usuarios_pkey" PRIMARY KEY ("id")
 );
@@ -191,12 +142,6 @@ CREATE UNIQUE INDEX "accesos_codigo_key" ON "accesos"("codigo");
 CREATE UNIQUE INDEX "detalle_accesos_idrol_idacceso_key" ON "detalle_accesos"("idrol", "idacceso");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "uq_documentospago_idpago" ON "documentospago"("idpago");
-
--- CreateIndex
-CREATE UNIQUE INDEX "uq_pagos_idorden" ON "pagos"("idorden");
-
--- CreateIndex
 CREATE UNIQUE INDEX "usuarios_email_key" ON "usuarios"("email");
 
 -- CreateIndex
@@ -216,18 +161,6 @@ ALTER TABLE "detalle_accesos" ADD CONSTRAINT "detalle_accesos_idrol_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "departamento" ADD CONSTRAINT "fk_departamento_pais" FOREIGN KEY ("idpais") REFERENCES "pais"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE "detalleorden" ADD CONSTRAINT "fk_detalleorden_orden" FOREIGN KEY ("idorden") REFERENCES "orden"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE "documentospago" ADD CONSTRAINT "fk_documentospago_pagos" FOREIGN KEY ("idpago") REFERENCES "pagos"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE "orden" ADD CONSTRAINT "fk_orden_usuarios" FOREIGN KEY ("idusuario") REFERENCES "usuarios"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-
--- AddForeignKey
-ALTER TABLE "pagos" ADD CONSTRAINT "fk_pagos_orden" FOREIGN KEY ("idorden") REFERENCES "orden"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "perfil" ADD CONSTRAINT "perfil_idrol_fkey" FOREIGN KEY ("idrol") REFERENCES "rol"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;

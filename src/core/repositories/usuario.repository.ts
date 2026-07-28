@@ -3,6 +3,7 @@ import { Usuario } from '../entities/auth/usuario.enity';
 
 export interface UsuarioRepository {
     findByEmail(email: string): Promise<Usuario | null>;
+    findById(id: number): Promise<{ id: number; username: string; email: string } | null>;
     create(usuario: Usuario): Promise<Usuario>;
     findByGoogleId(googleId: string): Promise<Usuario | null>;
     saveResetCode(id: number, code: string, expires: Date): Promise<void>;

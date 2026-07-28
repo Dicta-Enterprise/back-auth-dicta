@@ -6,10 +6,10 @@ import { PerfilModule } from './infrastructure/http/perfil/perfil.module';
 import { AccesosModule } from './infrastructure/http/acceso/accesos.module';
 import { RolesModule  } from './infrastructure/http/rol/roles.module';
 import { PermisosModule   } from './infrastructure/http/permisos/permisos.module';
-import { CursosModule } from './infrastructure/http/cursos/cursos.module';
+
 
 @Module({
-  imports: [AuthModule, PerfilModule, AccesosModule,RolesModule,PermisosModule, CursosModule  ],
+  imports: [AuthModule, PerfilModule, AccesosModule,RolesModule,PermisosModule  ],
   controllers: [AppController],
   providers: [AppService],
 })

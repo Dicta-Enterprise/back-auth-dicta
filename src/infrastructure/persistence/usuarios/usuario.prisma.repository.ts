@@ -105,4 +105,15 @@ async eliminarUsuario(id: number): Promise<void> {
     where: { id },
   });
 }
+
+  async findById(id: number): Promise<{ id: number; username: string; email: string } | null> {
+    return this.prisma.usuarios.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+      },
+    });
+  }
 }
