@@ -6,7 +6,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  shadowDatabaseUrl = "postgresql://postgres:123456@localhost:5432/postgres_shadow"
 }
 
 model accesos {
@@ -97,26 +96,28 @@ model rol {
 }
 
 model usuarios {
-  id                   Int                @id @default(autoincrement())
-  username             String             @db.VarChar(50)
-  email                String             @unique @db.VarChar(150)
-  auth_provider        String             @default("LOCAL") @db.VarChar(20)
-  password             String?            @db.VarChar(255)
-  fechadecreacion      DateTime?
-  estado               Int?      @db.SmallInt
-  idrol                Int?      @default(4)
-  googleId             String?   @unique
-  perfil               perfil[]
-  persona              persona[]
-  terminos_condiciones Boolean            @default(false)
-  reset_code           String?            @db.VarChar(6)
-  reset_code_expires   DateTime?          @db.Timestamp(6)
-  reset_attempts       Int                @default(0)
-  verify_code          String?            @db.VarChar(6)       
-  verify_code_expires  DateTime?          @db.Timestamp(6)      
-  verify_attempts      Int                @default(0)             
-  rol                  rol?               @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  cuenta_asociada      cuenta_asociada[]
+  id                    Int                  @id @default(autoincrement())
+  username              String               @db.VarChar(50)
+  email                 String               @unique @db.VarChar(150)
+  auth_provider         String               @default("LOCAL") @db.VarChar(20)
+  password              String?              @db.VarChar(255)
+  fechadecreacion       DateTime?
+  estado                Int?                 @db.SmallInt
+  idrol                 Int?                 @default(4)
+  googleId              String?              @unique
+  perfil                perfil[]
+  persona               persona[]
+  terminos_condiciones  Boolean              @default(false)
+  reset_code            String?              @db.VarChar(6)
+  reset_code_expires    DateTime?            @db.Timestamp(6)
+  reset_attempts        Int                  @default(0)
+  verify_code           String?              @db.VarChar(6)
+  verify_code_expires   DateTime?            @db.Timestamp(6)
+  verify_attempts       Int                  @default(0)
+  rol                   rol?                 @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cuenta_asociada       cuenta_asociada[]     @relation("CuentaAsociadaUsuario")
+  cuenta_asociada_padre cuenta_asociada[]     @relation("CuentaAsociadaPadre")
+  invitacionfamiliar    invitacionfamiliar[]
 }
 
 model permiso {
@@ -151,31 +152,75 @@ enum EstadoCuentaAsociada {
 }
 
 model cuenta_asociada {
-  id            Int                  @id @default(autoincrement())
-  idpadre       Int
-  idusuario     Int
-  tipocuenta    TipoCuentaFamiliar
-  alias         String?              @db.VarChar(50)
-  estado        EstadoCuentaAsociada @default(ACTIVA)
-  fechacreacion DateTime             @default(now()) @db.Timestamp(6)
+  id              Int                  @id @default(autoincrement())
+  idpadre         Int
+  idusuario       Int?
+  idinvitacion    Int?                 @unique
+  alias           String?              @db.VarChar(50)
+  fechanacimiento DateTime?
+  tipocuenta      TipoCuentaFamiliar
+  estado          EstadoCuentaAsociada @default(ACTIVA)
+  fechacreacion   DateTime             @default(now()) @db.Timestamp(6)
 
-  usuarios      usuarios             @relation(fields: [idusuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_asociada_usuarios")
-  permisoCuenta permisoCuenta?
+  padre           usuarios             @relation("CuentaAsociadaPadre", fields: [idpadre], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cuenta_asociada_padre")
+  usuarios        usuarios?            @relation("CuentaAsociadaUsuario", fields: [idusuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_asociada_usuarios")
+  invitacion      invitacionfamiliar?  @relation(fields: [idinvitacion], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_cuenta_asociada_invitacion")
+  permisoCuenta   permisoCuenta?
+  cursoasignado   cursoasignado[]
 
   @@index([idpadre])
   @@index([idusuario])
 }
 
 model permisoCuenta {
-  id                    Int             @id @default(autoincrement())
-  idCuentaAsociada      Int             @unique
-  verPerfil             Boolean         @default(true)
-  verAlias              Boolean         @default(true)
-  verCertificaciones    Boolean         @default(true)
-  cambiarAvatar         Boolean         @default(false)
-  verProgreso           Boolean         @default(true)
-  interaccionComunidad  Boolean         @default(false)
-  fechaActualizacion    DateTime        @updatedAt
+  id                   Int             @id @default(autoincrement())
+  idCuentaAsociada     Int             @unique
+  verPerfil            Boolean         @default(true)
+  verAlias             Boolean         @default(true)
+  verCertificaciones   Boolean         @default(true)
+  cambiarAvatar        Boolean         @default(false)
+  verProgreso          Boolean         @default(true)
+  interaccionComunidad Boolean         @default(false)
+  fechaActualizacion   DateTime        @updatedAt
 
-  cuentaAsociada        cuenta_asociada @relation(fields: [idCuentaAsociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_permisoCuenta_cuentaAsociada")
+  cuentaAsociada       cuenta_asociada @relation(fields: [idCuentaAsociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_permisoCuenta_cuentaAsociada")
+}
+
+model cursoasignado {
+  id               Int             @id @default(autoincrement())
+  idcuentaasociada Int
+  idcurso          String          @db.Char(24)
+  fechaasignacion  DateTime        @default(now()) @db.Timestamp(6)
+  estado           Int             @default(1) @db.SmallInt
+
+  cuentaAsociada   cuenta_asociada @relation(fields: [idcuentaasociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cursoasignado_cuentaasociada")
+
+  @@index([idcuentaasociada])
+}
+
+enum EstadoInvitacion {
+  PENDIENTE
+  ACEPTADA
+  EXPIRADA
+  CANCELADA
+}
+
+model invitacionfamiliar {
+  id              Int                @id @default(autoincrement())
+  idpadre         Int
+  correo          String
+  nombre          String
+  alias           String
+  fechanacimiento DateTime
+  tipocuenta      TipoCuentaFamiliar
+  token           String             @unique
+  estado          EstadoInvitacion   @default(PENDIENTE)
+  fechaexpiracion DateTime
+  fechaaceptacion DateTime
+  fechacreacion   DateTime           @default(now())
+  usuarios        usuarios           @relation(fields: [idpadre], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  cuentaAsociada  cuenta_asociada?
+
+  @@index([correo])
+  @@index([token])
 }
