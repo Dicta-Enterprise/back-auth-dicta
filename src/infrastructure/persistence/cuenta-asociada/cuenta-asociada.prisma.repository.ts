@@ -56,4 +56,16 @@ export class CuentaAsociadaPrismaRepository implements CuentaAsociadaRepository 
     });
     return CuentaAsociada.fromPrisma(data);
   }
+  async updateEstado(id: number, estado: 'ACTIVA' | 'INACTIVA'): Promise<CuentaAsociada> {
+  const data = await this.prisma.cuenta_asociada.update({
+    where: { id },
+    data: { estado },
+    include: {
+      usuarios: {
+        select: { id: true, username: true, email: true },
+      },
+    },
+  });
+  return CuentaAsociada.fromPrisma(data);
+}
 }
