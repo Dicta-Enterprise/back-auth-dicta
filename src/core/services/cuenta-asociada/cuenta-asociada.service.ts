@@ -25,4 +25,7 @@ export class CuentaAsociadaService {
   async eliminarRelacion(id: number): Promise<CuentaAsociada> {
     return this.repository.deleteRelacion(id);
   }
+  async cambiarEstado(id: number, estado: 'ACTIVA' | 'INACTIVA'): Promise<CuentaAsociada> {
+  return this.repository.updateEstado(id, estado);
+}
 }
