@@ -115,8 +115,8 @@ model usuarios {
   verify_code_expires   DateTime?            @db.Timestamp(6)
   verify_attempts       Int                  @default(0)
   rol                   rol?                 @relation(fields: [idrol], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  cuenta_asociada       cuenta_asociada[]     @relation("CuentaAsociadaUsuario")
-  cuenta_asociada_padre cuenta_asociada[]     @relation("CuentaAsociadaPadre")
+  cuenta_asociada       cuenta_asociada[]    @relation("CuentaAsociadaUsuario")
+  cuenta_asociada_padre cuenta_asociada[]    @relation("CuentaAsociadaPadre")
   invitacionfamiliar    invitacionfamiliar[]
 }
 
@@ -163,28 +163,29 @@ model cuenta_asociada {
   estado          EstadoCuentaAsociada @default(ACTIVA)
   fechacreacion   DateTime             @default(now()) @db.Timestamp(6)
 
-  padre           usuarios             @relation("CuentaAsociadaPadre", fields: [idpadre], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cuenta_asociada_padre")
-  usuarios        usuarios?            @relation("CuentaAsociadaUsuario", fields: [idusuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_asociada_usuarios")
-  invitacion      invitacionfamiliar?  @relation(fields: [idinvitacion], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_cuenta_asociada_invitacion")
-  permisoCuenta   permisoCuenta?
-  cursoasignado   cursoasignado[]
+  padre                  usuarios             @relation("CuentaAsociadaPadre", fields: [idpadre], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cuenta_asociada_padre")
+  usuarios               usuarios?            @relation("CuentaAsociadaUsuario", fields: [idusuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_cuenta_asociada_usuarios")
+  invitacion             invitacionfamiliar?  @relation(fields: [idinvitacion], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_cuenta_asociada_invitacion")
+  permisoCuenta          permisoCuenta?
+  cursoasignado          cursoasignado[]
+  invitacionesFamiliares InvitacionFamiliar[]
 
   @@index([idpadre])
   @@index([idusuario])
 }
 
 model permisoCuenta {
-  id                   Int             @id @default(autoincrement())
-  idCuentaAsociada     Int             @unique
-  verPerfil            Boolean         @default(true)
-  verAlias             Boolean         @default(true)
-  verCertificaciones   Boolean         @default(true)
-  cambiarAvatar        Boolean         @default(false)
-  verProgreso          Boolean         @default(true)
-  interaccionComunidad Boolean         @default(false)
-  fechaActualizacion   DateTime        @updatedAt
+  id                   Int      @id @default(autoincrement())
+  idCuentaAsociada     Int      @unique
+  verPerfil            Boolean  @default(true)
+  verAlias             Boolean  @default(true)
+  verCertificaciones   Boolean  @default(true)
+  cambiarAvatar        Boolean  @default(false)
+  verProgreso          Boolean  @default(true)
+  interaccionComunidad Boolean  @default(false)
+  fechaActualizacion   DateTime @updatedAt
 
-  cuentaAsociada       cuenta_asociada @relation(fields: [idCuentaAsociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_permisoCuenta_cuentaAsociada")
+  cuentaAsociada cuenta_asociada @relation(fields: [idCuentaAsociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_permisoCuenta_cuentaAsociada")
 }
 
 enum EstadoCursoAsignado {
@@ -192,14 +193,15 @@ enum EstadoCursoAsignado {
   COMPLETADO
   CANCELADO
 }
+
 model cursoasignado {
-  id               Int             @id @default(autoincrement())
+  id               Int                 @id @default(autoincrement())
   idcuentaasociada Int
-  idcurso          String          @db.Char(24)
-  fechaasignacion  DateTime        @default(now()) @db.Timestamp(6)
+  idcurso          String              @db.Char(24)
+  fechaasignacion  DateTime            @default(now()) @db.Timestamp(6)
   estado           EstadoCursoAsignado @default(ACTIVO)
 
-  cuentaAsociada   cuenta_asociada @relation(fields: [idcuentaasociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cursoasignado_cuentaasociada")
+  cuentaAsociada cuenta_asociada @relation(fields: [idcuentaasociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_cursoasignado_cuentaasociada")
 
   @@index([idcuentaasociada])
 }
@@ -229,4 +231,20 @@ model invitacionfamiliar {
 
   @@index([correo])
   @@index([token])
+}
+
+model InvitacionFamiliar {
+  id               String           @id @default(cuid())
+  idCuentaAsociada Int
+  correo           String           @db.VarChar(150)
+  token            String           @unique
+  estado           EstadoInvitacion @default(PENDIENTE)
+  cursoId          String           @db.Char(24)
+  fechaExpiracion  DateTime
+  fechaAceptacion  DateTime?
+  fechaCreacion    DateTime         @default(now())
+
+  cuentaAsociada cuenta_asociada @relation(fields: [idCuentaAsociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_invitacionFamiliar_cuentaAsociada")
+
+  @@index([correo])
 }
