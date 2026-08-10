@@ -6,8 +6,9 @@ import { PerfilModule } from './infrastructure/http/perfil/perfil.module';
 import { AccesosModule } from './infrastructure/http/acceso/accesos.module';
 import { RolesModule } from './infrastructure/http/rol/roles.module';
 import { PermisosModule } from './infrastructure/http/permisos/permisos.module';
-import { CursosModule } from './infrastructure/http/cursos/cursos.module';
+//import { CursosModule } from './infrastructure/http/cursos/cursos.module';
 import { FamiliaModule } from './infrastructure/http/familia/familia.module';
+import { CuentasAsociadasModule } from './infrastructure/http/cuentas-asociadas/cuentas-asociadas.module';
 
 @Module({
   imports: [
@@ -16,8 +17,9 @@ import { FamiliaModule } from './infrastructure/http/familia/familia.module';
     AccesosModule,
     RolesModule,
     PermisosModule,
-    CursosModule,
+    //CursosModule,
     FamiliaModule,
+    CuentasAsociadasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
