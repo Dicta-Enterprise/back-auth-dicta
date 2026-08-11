@@ -9,6 +9,7 @@ import { PermisosModule } from './infrastructure/http/permisos/permisos.module';
 //import { CursosModule } from './infrastructure/http/cursos/cursos.module';
 import { FamiliaModule } from './infrastructure/http/familia/familia.module';
 import { CuentasAsociadasModule } from './infrastructure/http/cuentas-asociadas/cuentas-asociadas.module';
+import { CursosAsignadosModule } from './infrastructure/http/cursos-asignados/cursos-asignados.module';
 
 @Module({
   imports: [
@@ -20,8 +21,10 @@ import { CuentasAsociadasModule } from './infrastructure/http/cuentas-asociadas/
     //CursosModule,
     FamiliaModule,
     CuentasAsociadasModule,
+    CursosAsignadosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+
