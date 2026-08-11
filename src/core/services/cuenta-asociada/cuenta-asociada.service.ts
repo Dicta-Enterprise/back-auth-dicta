@@ -28,4 +28,8 @@ export class CuentaAsociadaService {
   async cambiarEstado(id: number, estado: 'ACTIVA' | 'INACTIVA'): Promise<CuentaAsociada> {
   return this.repository.updateEstado(id, estado);
 }
+
+  async asociarUsuario(id: number, idusuario: number): Promise<CuentaAsociada> {
+    return this.repository.asociarUsuario(id, idusuario);
+  }
 }
