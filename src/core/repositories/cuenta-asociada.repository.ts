@@ -6,4 +6,5 @@ export interface CuentaAsociadaRepository {
   findCuentaByIdAndPadre(id: number, idpadre: number): Promise<CuentaAsociada | null>;
   updateAlias(id: number, alias: string): Promise<CuentaAsociada>;
   deleteRelacion(id: number): Promise<CuentaAsociada>;
+  asociarUsuario(id: number, idusuario: number): Promise<CuentaAsociada>;
 }

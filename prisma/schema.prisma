@@ -175,17 +175,21 @@ model cuenta_asociada {
 }
 
 model permisoCuenta {
-  id                   Int      @id @default(autoincrement())
-  idCuentaAsociada     Int      @unique
-  verPerfil            Boolean  @default(true)
-  verAlias             Boolean  @default(true)
-  verCertificaciones   Boolean  @default(true)
-  cambiarAvatar        Boolean  @default(false)
-  verProgreso          Boolean  @default(true)
-  interaccionComunidad Boolean  @default(false)
-  fechaActualizacion   DateTime @updatedAt
-
-  cuentaAsociada cuenta_asociada @relation(fields: [idCuentaAsociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_permisoCuenta_cuentaAsociada")
+  id                      Int      @id @default(autoincrement())
+  idCuentaAsociada        Int      @unique
+  puedeVerCursos          Boolean  @default(true)
+  puedeComprarCursos      Boolean  @default(false)
+  puedeVerProgreso        Boolean  @default(true)
+  puedeUsarChat           Boolean  @default(false)
+  puedeDescargarMaterial  Boolean  @default(false)
+  puedeVerCertificados    Boolean  @default(false)
+  tiempoMaximoDiario      Int?
+  horarioInicio           String?
+  horarioFin              String?
+  fechaCreacion           DateTime @default(now())
+  fechaActualizacion      DateTime @updatedAt
+ 
+  cuentaAsociada          cuenta_asociada @relation(fields: [idCuentaAsociada], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_permisoCuenta_cuentaAsociada")
 }
 
 enum EstadoCursoAsignado {

@@ -63,5 +63,6 @@ import { GetUserByIdUseCase } from 'src/application/use-cases/get-user-by-id.use
     VerifyEmailUseCase,
     GetUserByIdUseCase
   ],
+  exports: [UsuariosService],
 })
 export class AuthModule {}
