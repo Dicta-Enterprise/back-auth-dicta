@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { InvitacionFamiliarService } from 'src/core/services/invitacion-familiar/invitacion-familiar.service';
+import { CuentaAsociadaService } from 'src/core/services/cuenta-asociada/cuenta-asociada.service';
 import { CreateCuentaAsociadaDto } from '../dto/create-cuenta-asociada.dto';
 import { Result } from 'src/shared/domain/result/result';
 
 @Injectable()
 export class CreateCuentaAsociadaUseCase {
-  constructor(private readonly service: InvitacionFamiliarService) {}
+  constructor(
+    private readonly service: InvitacionFamiliarService,
+    private readonly cuentaAsociadaService: CuentaAsociadaService,
+  ) {}
 
   async execute(dto: CreateCuentaAsociadaDto, idpadre: number) {
     try {
@@ -27,6 +31,15 @@ export class CreateCuentaAsociadaUseCase {
         tipocuenta: dto.tipoCuenta,
         token,
         fechaexpiracion,
+      });
+
+      await this.cuentaAsociadaService.crear({
+        idpadre,
+        idinvitacion: invitacion.id,
+        correo: dto.correo,
+        alias: dto.alias,
+        fechanacimiento: new Date(dto.fechaNacimiento),
+        tipocuenta: dto.tipoCuenta,
       });
 
       return Result.ok(invitacion);
