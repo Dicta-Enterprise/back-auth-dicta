@@ -14,6 +14,10 @@ export class UpdateAliasCuentaFamiliarUseCase {
         return Result.fail(new Error('Cuenta familiar no encontrada o no autorizada.'));
       }
 
+      if (cuenta.estado !== 'PENDIENTE') {
+        return Result.fail(new Error(`No se puede modificar la cuenta porque su estado actual es ${cuenta.estado}.`));
+      }
+
       const actualizada = await this.service.actualizarAlias(id, dto.alias);
       return Result.ok(actualizada);
     } catch {
@@ -21,3 +25,4 @@ export class UpdateAliasCuentaFamiliarUseCase {
     }
   }
 }
+

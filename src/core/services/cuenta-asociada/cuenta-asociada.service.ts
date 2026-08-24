@@ -25,11 +25,27 @@ export class CuentaAsociadaService {
   async eliminarRelacion(id: number): Promise<CuentaAsociada> {
     return this.repository.deleteRelacion(id);
   }
+
   async cambiarEstado(id: number, estado: 'ACTIVA' | 'INACTIVA'): Promise<CuentaAsociada> {
-  return this.repository.updateEstado(id, estado);
-}
+    return this.repository.updateEstado(id, estado);
+  }
 
   async asociarUsuario(id: number, idusuario: number): Promise<CuentaAsociada> {
     return this.repository.asociarUsuario(id, idusuario);
   }
+
+  async crear(data: {
+    idpadre: number;
+    idinvitacion: number;
+    correo: string;
+    alias: string;
+    fechanacimiento: Date;
+    tipocuenta: string;
+  }): Promise<CuentaAsociada> {
+    return this.repository.crear(data);
+  }
 }
+
+
+
+

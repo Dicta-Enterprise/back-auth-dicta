@@ -7,4 +7,13 @@ export interface CuentaAsociadaRepository {
   updateAlias(id: number, alias: string): Promise<CuentaAsociada>;
   deleteRelacion(id: number): Promise<CuentaAsociada>;
   asociarUsuario(id: number, idusuario: number): Promise<CuentaAsociada>;
+  crear(data: {
+  idpadre: number;
+  idinvitacion: number;
+  correo: string;
+  alias: string;
+  fechanacimiento: Date;
+  tipocuenta: string;
+}): Promise<CuentaAsociada>;
 }
+

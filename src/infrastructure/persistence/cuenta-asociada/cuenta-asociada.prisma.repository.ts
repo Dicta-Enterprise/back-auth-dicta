@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CuentaAsociada } from 'src/core/entities/cuenta-asociada/cuenta-asociada.entity';
 import { CuentaAsociadaRepository } from 'src/core/repositories/cuenta-asociada.repository';
 import { PrismaService } from 'src/core/services/prisma/prisma.service';
+import { TipoCuentaFamiliar } from 'generated/prisma'; // ← revisa esta ruta, ver nota abajo
 
 @Injectable()
 export class CuentaAsociadaPrismaRepository implements CuentaAsociadaRepository {
@@ -56,18 +57,19 @@ export class CuentaAsociadaPrismaRepository implements CuentaAsociadaRepository 
     });
     return CuentaAsociada.fromPrisma(data);
   }
+
   async updateEstado(id: number, estado: 'ACTIVA' | 'INACTIVA'): Promise<CuentaAsociada> {
-  const data = await this.prisma.cuenta_asociada.update({
-    where: { id },
-    data: { estado },
-    include: {
-      usuarios: {
-        select: { id: true, username: true, email: true },
+    const data = await this.prisma.cuenta_asociada.update({
+      where: { id },
+      data: { estado },
+      include: {
+        usuarios: {
+          select: { id: true, username: true, email: true },
+        },
       },
-    },
-  });
-  return CuentaAsociada.fromPrisma(data);
-}
+    });
+    return CuentaAsociada.fromPrisma(data);
+  }
 
   async asociarUsuario(id: number, idusuario: number): Promise<CuentaAsociada> {
     const data = await this.prisma.cuenta_asociada.update({
@@ -80,5 +82,31 @@ export class CuentaAsociadaPrismaRepository implements CuentaAsociadaRepository 
       },
     });
     return CuentaAsociada.fromPrisma(data);
+  }
+
+  async crear(data: {
+    idpadre: number;
+    idinvitacion: number;
+    correo: string;
+    alias: string;
+    fechanacimiento: Date;
+    tipocuenta: string;
+  }): Promise<CuentaAsociada> {
+    const nueva = await this.prisma.cuenta_asociada.create({
+      data: {
+        idpadre: data.idpadre,
+        idinvitacion: data.idinvitacion,
+        correo: data.correo,
+        alias: data.alias,
+        fechanacimiento: data.fechanacimiento,
+        tipocuenta: data.tipocuenta as TipoCuentaFamiliar,
+      },
+      include: {
+        usuarios: {
+          select: { id: true, username: true, email: true },
+        },
+      },
+    });
+    return CuentaAsociada.fromPrisma(nueva);
   }
 }
