@@ -109,4 +109,16 @@ export class CuentaAsociadaPrismaRepository implements CuentaAsociadaRepository 
     });
     return CuentaAsociada.fromPrisma(nueva);
   }
+
+  async findCuentasDisponiblesParaCurso(idpadre: number, tipocuenta: string): Promise<CuentaAsociada[]> {
+    const data = await this.prisma.cuenta_asociada.findMany({
+      where: {
+        idpadre,
+        tipocuenta: tipocuenta as TipoCuentaFamiliar,
+        estado: 'ACTIVA',
+      },
+      orderBy: { fechacreacion: 'desc' },
+    });
+    return data.map((item) => CuentaAsociada.fromPrisma(item));
+  }
 }

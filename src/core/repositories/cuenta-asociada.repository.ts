@@ -15,5 +15,6 @@ export interface CuentaAsociadaRepository {
   fechanacimiento: Date;
   tipocuenta: string;
 }): Promise<CuentaAsociada>;
+  findCuentasDisponiblesParaCurso(idpadre: number, tipocuenta: string): Promise<CuentaAsociada[]>;
 }
 

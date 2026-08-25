@@ -44,6 +44,10 @@ export class CuentaAsociadaService {
   }): Promise<CuentaAsociada> {
     return this.repository.crear(data);
   }
+
+  async obtenerCuentasDisponiblesParaCurso(idpadre: number, tipocuenta: string): Promise<CuentaAsociada[]> {
+    return this.repository.findCuentasDisponiblesParaCurso(idpadre, tipocuenta);
+  }
 }
 
 
