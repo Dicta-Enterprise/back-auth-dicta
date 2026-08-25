@@ -1,12 +1,15 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateCursoAsignadoDto } from 'src/application/dto/create-curso-asignado.dto';
 import { ReasignarCursoDto } from 'src/application/dto/reasignar-curso.dto';
+import { ListarCuentasDisponiblesDto } from 'src/application/dto/listar-cuentas-disponibles.dto';
 import { CreateCursoAsignadoUseCase } from 'src/application/use-cases/create-curso-asignado.use-case';
 import { GetCursosPorCuentaUseCase } from 'src/application/use-cases/get-cursos-por-cuenta.use-case';
 import { GetCursoAsignadoDetalleUseCase } from 'src/application/use-cases/get-curso-asignado-detalle.use-case';
 import { ReasignarCursoAsignadoUseCase } from 'src/application/use-cases/reasignar-curso-asignado.use-case';
 import { DeleteCursoAsignadoUseCase } from 'src/application/use-cases/delete-curso-asignado.use-case';
+import { ListarCuentasDisponiblesCursoUseCase } from 'src/application/use-cases/listar-cuentas-disponibles-curso.use-case';
+import { CurrentUser } from 'src/shared/decorator/current-user.decorator';
 import { jwtAuthGuard } from 'src/shared/guard/jwtAuth.guard';
 
 @ApiTags('Cursos Asignados')
@@ -20,18 +23,32 @@ export class CursosAsignadosController {
     private readonly getCursoAsignadoDetalleUseCase: GetCursoAsignadoDetalleUseCase,
     private readonly reasignarCursoAsignadoUseCase: ReasignarCursoAsignadoUseCase,
     private readonly deleteCursoAsignadoUseCase: DeleteCursoAsignadoUseCase,
+    private readonly listarCuentasDisponiblesCursoUseCase: ListarCuentasDisponiblesCursoUseCase,
   ) {}
 
   @Post('cursos-asignados')
   @ApiOperation({ summary: 'Asignar un curso a una cuenta asociada' })
   @ApiResponse({ status: 201, description: 'Curso asignado con éxito.' })
-  @ApiResponse({ status: 400, description: 'El curso ya está asignado a esta cuenta.' })
-  async crear(@Body() dto: CreateCursoAsignadoDto) {
-    const result = await this.createCursoAsignadoUseCase.execute(dto);
+  @ApiResponse({ status: 400, description: 'El curso ya está asignado a esta cuenta, el tipo no coincide, la cuenta no está ACTIVA o no es del padre autenticado.' })
+  async crear(@Body() dto: CreateCursoAsignadoDto, @CurrentUser() user) {
+    const idPadre = Number(user.sub);
+    const result = await this.createCursoAsignadoUseCase.execute(dto, idPadre);
     if (result.isFailure) {
       throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
     }
     return { data: result.getValue(), message: 'Curso asignado con éxito.' };
+  }
+
+  @Get('cursos-asignados/cuentas-disponibles')
+  @ApiOperation({ summary: 'Listar las cuentas asociadas del padre autenticado disponibles para recibir un curso de un tipo determinado' })
+  @ApiResponse({ status: 200, description: 'Cuentas disponibles obtenidas con éxito.' })
+  async cuentasDisponibles(@Query() query: ListarCuentasDisponiblesDto, @CurrentUser() user) {
+    const idPadre = Number(user.sub);
+    const result = await this.listarCuentasDisponiblesCursoUseCase.execute(idPadre, query.tipoCurso);
+    if (result.isFailure) {
+      throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
+    }
+    return { data: result.getValue(), message: 'Cuentas disponibles obtenidas con éxito.' };
   }
 
   @Get('cuentas-asociadas/:id/cursos')

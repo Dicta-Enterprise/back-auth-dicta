@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { TipoCuentaFamiliar } from 'generated/prisma';
 
 export class CreateCursoAsignadoDto {
   @ApiProperty({
@@ -18,5 +19,14 @@ export class CreateCursoAsignadoDto {
   @IsNotEmpty({ message: 'El curso es obligatorio' })
   @MaxLength(24, { message: 'El id del curso no puede exceder los 24 caracteres' })
   idcurso: string;
+
+  @ApiProperty({
+    example: 'NINO',
+    description: 'Tipo de curso a asignar (dirigido a NINO o JOVEN), informado por el cliente',
+    enum: TipoCuentaFamiliar,
+  })
+  @IsEnum(TipoCuentaFamiliar, { message: 'El tipo de curso debe ser NINO o JOVEN' })
+  @IsNotEmpty({ message: 'El tipo de curso es obligatorio' })
+  tipoCurso: TipoCuentaFamiliar;
 }
 

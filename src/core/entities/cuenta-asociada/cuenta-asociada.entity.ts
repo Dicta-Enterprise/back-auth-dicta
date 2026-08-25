@@ -12,6 +12,8 @@ export class CuentaAsociada {
       username: string;
       email: string;
     },
+    public readonly correo?: string | null,
+    public readonly fechanacimiento?: Date | null,
   ) {}
 
   static fromPrisma(data: unknown): CuentaAsociada {
@@ -23,6 +25,8 @@ export class CuentaAsociada {
       alias: string | null;
       estado: string;
       fechacreacion: Date;
+      correo?: string | null;
+      fechanacimiento?: Date | null;
       usuarios?: {
         id: number;
         username: string;
@@ -39,6 +43,8 @@ export class CuentaAsociada {
       c.estado,
       c.fechacreacion,
       c.usuarios,
+      c.correo,
+      c.fechanacimiento,
     );
   }
 }
