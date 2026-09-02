@@ -26,6 +26,11 @@ import { ResetPasswordUseCase } from 'src/application/use-cases/reset-password.u
 import { VerifyEmailUseCase } from 'src/application/use-cases/verify-email.use-case';
 import { InternalController } from './internal.controller';
 import { GetUserByIdUseCase } from 'src/application/use-cases/get-user-by-id.use-case';
+import { GetMiPerfilUseCase } from 'src/application/use-cases/get-mi-perfil.use-case';
+import { UBICACION_USUARIO_REPOSITORY } from 'src/core/constants/constants';
+import { UbicacionUsuarioPrismaRepository } from 'src/infrastructure/persistence/ubicacion-usuario/ubicacion-usuario.prisma.repository';
+import { UbicacionUsuarioService } from 'src/core/services/ubicacion-usuario/ubicacion-usuario.service';
+import { GeoService } from 'src/core/services/geo/geo.service';
 
 @Module({
   imports: [
@@ -61,7 +66,14 @@ import { GetUserByIdUseCase } from 'src/application/use-cases/get-user-by-id.use
     VerifyResetCodeUseCase,    
     ResetPasswordUseCase,
     VerifyEmailUseCase,
-    GetUserByIdUseCase
+    GetUserByIdUseCase,
+    {
+      provide: UBICACION_USUARIO_REPOSITORY,
+      useClass: UbicacionUsuarioPrismaRepository,
+    },
+    UbicacionUsuarioService,
+    GeoService,
+    GetMiPerfilUseCase,
   ],
   exports: [UsuariosService],
 })
