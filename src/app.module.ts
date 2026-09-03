@@ -11,6 +11,7 @@ import { FamiliaModule } from './infrastructure/http/familia/familia.module';
 import { CuentasAsociadasModule } from './infrastructure/http/cuentas-asociadas/cuentas-asociadas.module';
 import { CursosAsignadosModule } from './infrastructure/http/cursos-asignados/cursos-asignados.module';
 import { InvitacionesCursoModule } from './infrastructure/http/familia/invitaciones/invitaciones-curso.module';
+import { UbicacionUsuarioModule } from './infrastructure/http/ubicacion-usuario/ubicacion-usuario.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { InvitacionesCursoModule } from './infrastructure/http/familia/invitacio
     FamiliaModule,
     CuentasAsociadasModule,
     CursosAsignadosModule,
+    UbicacionUsuarioModule,
   ],
   controllers: [AppController],
   providers: [AppService],

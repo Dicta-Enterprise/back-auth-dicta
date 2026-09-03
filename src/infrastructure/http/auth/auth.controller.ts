@@ -21,6 +21,7 @@ import { VerifyResetCodeDto } from 'src/application/dto/verify-reset-code.dto';
 import { ResetPasswordDto } from 'src/application/dto/reset-password.dto';
 import { VerifyEmailUseCase } from 'src/application/use-cases/verify-email.use-case';
 import { VerifyEmailDto } from 'src/application/dto/verify-email.dto';
+import { GetMiPerfilUseCase } from 'src/application/use-cases/get-mi-perfil.use-case';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -33,6 +34,7 @@ export class AuthController {
             private verifyResetCodeUseCase: VerifyResetCodeUseCase,    
             private resetPasswordUseCase: ResetPasswordUseCase,
             private verifyEmailUseCase: VerifyEmailUseCase,
+            private getMiPerfilUseCase: GetMiPerfilUseCase,
     ) {}
     
     @Post('register')
@@ -93,10 +95,17 @@ export class AuthController {
     }
 
     @UseGuards(jwtAuthGuard)
-    @ApiOperation({ summary: 'Obtener perfil de usuario (prueba)' })
+    @ApiOperation({ summary: 'Obtener los datos de la cuenta autenticada, incluyendo su ubicación' })
+    @ApiResponse({ status: 200, description: 'Perfil obtenido con éxito.' })
+    @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
     @Get('profile')
-    profile(@CurrentUser() user: JwtPayload) {
-    return user;
+    async profile(@CurrentUser() user: JwtPayload) {
+    const idusuario = Number(user.sub);
+    const result = await this.getMiPerfilUseCase.execute(idusuario);
+    if (result.isFailure) {
+        throw new HttpException(result.error.message, HttpStatus.NOT_FOUND);
+    }
+    return result.getValue();
     }
 
     @Get('google')
