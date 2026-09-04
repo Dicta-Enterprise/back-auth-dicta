@@ -52,4 +52,29 @@ export class UbicacionUsuarioService {
       zonaHoraria: geo.zonaHoraria,
     });
   }
+
+  async actualizarDesdeIp(idusuario: number, ip: string): Promise<UbicacionUsuario> {
+    const geo = this.geoService.resolve(ip);
+    const actual = await this.repository.findByUsuario(idusuario);
+
+    if (!geo.countryCode) {
+      if (actual) {
+        return actual;
+      }
+      throw new BussinesRuleException(
+        'No se pudo determinar la ubicación a partir de la IP registrada',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    const idpaisResuelto = geo.countryName
+      ? await this.repository.findPaisIdByNombre(geo.countryName)
+      : null;
+
+    return this.repository.upsert(idusuario, {
+      idpais: idpaisResuelto ?? actual?.idpais ?? null,
+      ciudad: geo.city ?? actual?.ciudad ?? null,
+      zonaHoraria: geo.zonaHoraria ?? actual?.zonaHoraria ?? null,
+    });
+  }
 }
