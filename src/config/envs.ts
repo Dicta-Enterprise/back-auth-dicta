@@ -38,6 +38,7 @@ export const envs = {
   googleClientSecret: envVars.GOOGLE_CLIENT_SECRET,
   googleCallbackUrl: envVars.GOOGLE_CALLBACK_URL,
   frontendUrl: envVars.FRONTEND_URL,
+  transactionApiUrl: process.env.TRANSACTION_API_URL || 'http://localhost:3001',
 };
 
 

@@ -1,6 +1,7 @@
 import { Controller, Get, HttpException, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DetectarUbicacionUsuarioUseCase } from 'src/application/use-cases/detectar-ubicacion-usuario.use-case';
+import { DetectarUbicacionPorCompraUseCase } from 'src/application/use-cases/detectar-ubicacion-por-compra.use-case';
 import { GetUbicacionUsuarioUseCase } from 'src/application/use-cases/get-ubicacion-usuario.use-case';
 import { JwtPayload } from 'src/core/services/auth/jwtPayload';
 import { ClientIp } from 'src/shared/decorator/client-ip.decorator';
@@ -24,6 +25,7 @@ export class UbicacionUsuarioController {
   constructor(
     private readonly getUbicacionUsuarioUseCase: GetUbicacionUsuarioUseCase,
     private readonly detectarUbicacionUsuarioUseCase: DetectarUbicacionUsuarioUseCase,
+    private readonly detectarUbicacionPorCompraUseCase: DetectarUbicacionPorCompraUseCase,
   ) {}
 
   @Get('ubicacion')
@@ -48,6 +50,22 @@ export class UbicacionUsuarioController {
     const result = await this.detectarUbicacionUsuarioUseCase.execute(idusuario, ip);
     if (result.isFailure) {
       throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
+    }
+    return toResponse(result.getValue());
+  }
+
+  @Post('ubicacion/detectar-por-compra')
+  @ApiOperation({
+    summary: 'Detectar y actualizar la ubicación del usuario a partir de la IP registrada en su última compra',
+    description: 'Consulta la IP guardada por Back Transacción durante el checkout de Mercado Pago y la reutiliza con el mismo servicio de geolocalización existente. No recibe ninguna IP del cliente.',
+  })
+  @ApiResponse({ status: 201, description: 'Ubicación detectada y guardada con éxito.' })
+  @ApiResponse({ status: 404, description: 'El usuario no tiene ninguna IP registrada en sus compras.' })
+  async detectarPorCompra(@CurrentUser() user: JwtPayload) {
+    const idusuario = Number(user.sub);
+    const result = await this.detectarUbicacionPorCompraUseCase.execute(idusuario);
+    if (result.isFailure) {
+      throw new HttpException(result.error.message, HttpStatus.NOT_FOUND);
     }
     return toResponse(result.getValue());
   }
