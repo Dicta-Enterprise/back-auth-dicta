@@ -11,6 +11,7 @@ import { CurrentUser } from 'src/shared/decorator/current-user.decorator';
 import { jwtAuthGuard } from 'src/shared/guard/jwtAuth.guard';
 import { CreateCuentaAsociadaDto } from 'src/application/dto/create-cuenta-asociada.dto';
 import { CreateCuentaAsociadaUseCase } from 'src/application/use-cases/create-cuenta-asociada.use-case';
+import { GetMiCuentaUseCase } from 'src/application/use-cases/get-mi-cuenta.use-case';
 
 
 @ApiTags('Cuentas Asociadas')
@@ -26,6 +27,7 @@ export class CuentasAsociadasController {
     private readonly desactivarCuentaAsociadaUseCase: DesactivarCuentaAsociadaUseCase,
     private readonly reactivarCuentaAsociadaUseCase: ReactivarCuentaAsociadaUseCase,
     private readonly createCuentaAsociadaUseCase: CreateCuentaAsociadaUseCase,
+    private readonly getMiCuentaUseCase: GetMiCuentaUseCase,
 
   ) {}
 
@@ -52,6 +54,23 @@ export class CuentasAsociadasController {
       throw new HttpException(result.error.message, HttpStatus.BAD_REQUEST);
     }
     return { data: result.getValue(), message: 'Cuentas asociadas obtenidas con éxito.' };
+  }
+
+  @Get('mi-cuenta')
+  @ApiOperation({
+    summary: 'Obtener la cuenta del usuario autenticado',
+    description:
+    'Indica si el usuario autenticado es una cuenta asociada. Si lo es, devuelve el padre, el tipo de cuenta, el estado y sus permisos. Si es un usuario principal, cuentaAsociada es null.',
+  })
+  @ApiResponse({ status: 200, description: 'Cuenta obtenida con éxito.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  async obtenerMiCuenta(@CurrentUser() user) {
+    const idusuario = Number(user.sub);
+    const result = await this.getMiCuentaUseCase.execute(idusuario);
+    if (result.isFailure) {
+      throw new HttpException(result.error.message, HttpStatus.NOT_FOUND);
+    }
+    return { data: result.getValue(), message: 'Cuenta obtenida con éxito.' };
   }
 
   @Get(':id')

@@ -13,6 +13,7 @@ import { DesactivarCuentaAsociadaUseCase } from 'src/application/use-cases/desac
 import { ReactivarCuentaAsociadaUseCase } from 'src/application/use-cases/reactivar-cuenta-asociada.use-case';
 import { CreateCuentaAsociadaUseCase } from 'src/application/use-cases/create-cuenta-asociada.use-case';
 import { PrismaService } from 'src/core/services/prisma/prisma.service';
+import { GetMiCuentaUseCase } from 'src/application/use-cases/get-mi-cuenta.use-case';
 
 @Module({
   controllers: [CuentasAsociadasController],
@@ -34,6 +35,7 @@ import { PrismaService } from 'src/core/services/prisma/prisma.service';
     DesactivarCuentaAsociadaUseCase,
     ReactivarCuentaAsociadaUseCase,
     CreateCuentaAsociadaUseCase,
+    GetMiCuentaUseCase,
     PrismaService,
   ],
 })
