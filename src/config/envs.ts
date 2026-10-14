@@ -8,6 +8,7 @@ interface EnvVars {
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_CALLBACK_URL: string;
   FRONTEND_URL: string;
+  INTERNAL_API_KEY: string;
 }
 
 const envSchema = joi
@@ -18,6 +19,7 @@ const envSchema = joi
     GOOGLE_CLIENT_SECRET: joi.string().required(),
     GOOGLE_CALLBACK_URL: joi.string().required(),
     FRONTEND_URL: joi.string().required(),
+    INTERNAL_API_KEY: joi.string().min(16).required(),
   })
   .unknown(true);
 
@@ -38,6 +40,7 @@ export const envs = {
   googleClientSecret: envVars.GOOGLE_CLIENT_SECRET,
   googleCallbackUrl: envVars.GOOGLE_CALLBACK_URL,
   frontendUrl: envVars.FRONTEND_URL,
+  internalApiKey: envVars.INTERNAL_API_KEY,
   transactionApiUrl: process.env.TRANSACTION_API_URL || 'http://localhost:3001',
 };
 

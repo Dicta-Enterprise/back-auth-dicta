@@ -31,6 +31,11 @@ import { UBICACION_USUARIO_REPOSITORY } from 'src/core/constants/constants';
 import { UbicacionUsuarioPrismaRepository } from 'src/infrastructure/persistence/ubicacion-usuario/ubicacion-usuario.prisma.repository';
 import { UbicacionUsuarioService } from 'src/core/services/ubicacion-usuario/ubicacion-usuario.service';
 import { GeoService } from 'src/core/services/geo/geo.service';
+import { FAMILIA_REPOSITORY } from 'src/core/constants/constants';
+import { FamiliaPrismaRepository } from 'src/infrastructure/persistence/familia/familia.prisma.repository';
+import { FamiliaService } from 'src/core/services/familia/familia.service';
+import { ListarFamiliasInternoUseCase } from 'src/application/use-cases/listar-familias-interno.use-case';
+import { GetFamiliaInternoUseCase } from 'src/application/use-cases/get-familia-interno.use-case';
 
 @Module({
   imports: [
@@ -74,6 +79,13 @@ import { GeoService } from 'src/core/services/geo/geo.service';
     UbicacionUsuarioService,
     GeoService,
     GetMiPerfilUseCase,
+    {
+      provide: FAMILIA_REPOSITORY,
+      useClass: FamiliaPrismaRepository,
+    },
+    FamiliaService,
+    ListarFamiliasInternoUseCase,
+    GetFamiliaInternoUseCase,
   ],
   exports: [UsuariosService],
 })
