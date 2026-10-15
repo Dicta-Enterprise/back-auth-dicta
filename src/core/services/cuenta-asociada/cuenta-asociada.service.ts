@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CUENTA_ASOCIADA_REPOSITORY } from 'src/core/constants/constants';
 import { CuentaAsociada } from 'src/core/entities/cuenta-asociada/cuenta-asociada.entity';
 import { CuentaAsociadaRepository } from 'src/core/repositories/cuenta-asociada.repository';
+import { MiCuenta } from 'src/core/entities/cuenta-asociada/mi-cuenta.entity';
 
 @Injectable()
 export class CuentaAsociadaService {
@@ -48,6 +49,11 @@ export class CuentaAsociadaService {
   async obtenerCuentasDisponiblesParaCurso(idpadre: number, tipocuenta: string): Promise<CuentaAsociada[]> {
     return this.repository.findCuentasDisponiblesParaCurso(idpadre, tipocuenta);
   }
+
+  async obtenerMiCuenta(idusuario: number): Promise<MiCuenta | null> {
+    return this.repository.findMiCuenta(idusuario);
+  }
+
 }
 
 

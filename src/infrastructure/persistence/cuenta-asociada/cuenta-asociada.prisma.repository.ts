@@ -3,6 +3,7 @@ import { CuentaAsociada } from 'src/core/entities/cuenta-asociada/cuenta-asociad
 import { CuentaAsociadaRepository } from 'src/core/repositories/cuenta-asociada.repository';
 import { PrismaService } from 'src/core/services/prisma/prisma.service';
 import { TipoCuentaFamiliar } from 'generated/prisma'; // ← revisa esta ruta, ver nota abajo
+import { MiCuenta } from 'src/core/entities/cuenta-asociada/mi-cuenta.entity';
 
 @Injectable()
 export class CuentaAsociadaPrismaRepository implements CuentaAsociadaRepository {
@@ -121,4 +122,37 @@ export class CuentaAsociadaPrismaRepository implements CuentaAsociadaRepository 
     });
     return data.map((item) => CuentaAsociada.fromPrisma(item));
   }
+
+  async findMiCuenta(idusuario: number): Promise<MiCuenta | null> {
+  const data = await this.prisma.usuarios.findUnique({
+    where: { id: idusuario },
+    select: {
+      id: true,
+      username: true,
+      cuenta_asociada: {
+        take: 1,
+        orderBy: { fechacreacion: 'desc' },
+        select: {
+          id: true,
+          idpadre: true,
+          tipocuenta: true,
+          estado: true,
+          alias: true,
+          invitacion: { select: { nombre: true } },
+          permisoCuenta: {
+            select: {
+              puedeVerCursos: true,
+              puedeComprarCursos: true,
+              puedeVerProgreso: true,
+              puedeUsarChat: true,
+              puedeDescargarMaterial: true,
+              puedeVerCertificados: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  return data ? MiCuenta.fromPrisma(data) : null;
+}
 }

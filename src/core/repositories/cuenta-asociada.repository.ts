@@ -1,4 +1,5 @@
 import { CuentaAsociada } from '../entities/cuenta-asociada/cuenta-asociada.entity';
+import { MiCuenta } from '../entities/cuenta-asociada/mi-cuenta.entity';
 
 export interface CuentaAsociadaRepository {
   findCuentasByPadre(idpadre: number): Promise<CuentaAsociada[]>;
@@ -16,5 +17,6 @@ export interface CuentaAsociadaRepository {
   tipocuenta: string;
 }): Promise<CuentaAsociada>;
   findCuentasDisponiblesParaCurso(idpadre: number, tipocuenta: string): Promise<CuentaAsociada[]>;
+  findMiCuenta(idusuario: number): Promise<MiCuenta | null>;
 }
 
