@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Familia } from 'src/core/entities/familia/familia.entity';
 import { FamiliaConMiembros } from 'src/core/entities/familia/familia-con-miembros.entity';
 import { FamiliaRepository } from 'src/core/repositories/familia.repository';
+import { formatearIdFamilia, formatearIdUsuario } from 'src/core/services/identificadores/identificadores';
 import { PrismaService } from 'src/core/services/prisma/prisma.service';
 
 @Injectable()
@@ -70,13 +71,15 @@ export class FamiliaPrismaRepository implements FamiliaRepository {
 
     return familias.map((f) => ({
       id: f.id,
+      codigo: formatearIdFamilia(f.id),
       nombre: f.nombre,
-      padre: f.padre,
+      padre: { ...f.padre, codigo: formatearIdUsuario('P', f.padre.id) },
       miembros: cuentas
         .filter((c) => c.idpadre === f.idpadre)
         .map((c) => ({
           idcuenta: c.id,
           idusuario: c.idusuario as number,
+          codigo: formatearIdUsuario(c.tipocuenta === 'JOVEN' ? 'J' : 'N', c.idusuario as number),
           alias: c.alias,
           tipocuenta: c.tipocuenta,
           estado: c.estado,
