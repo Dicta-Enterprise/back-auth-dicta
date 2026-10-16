@@ -16,21 +16,31 @@ describe('identificadores', () => {
     expect(interpretarId('FAM-014')).toEqual({ clase: 'FAMILIA', id: 14 });
     expect(interpretarId('fam14')).toEqual({ clase: 'FAMILIA', id: 14 });
     expect(interpretarId('32')).toEqual({ clase: 'USUARIO', id: 32 });
+    expect(interpretarId('00000000-0000-4000-8000-000000000020')).toEqual({
+      clase: 'UUID',
+      uuid: '00000000-0000-4000-8000-000000000020',
+    });
+    expect(interpretarId(' 00000000-0000-4000-8000-00000000ABCD ')).toEqual({
+      clase: 'UUID',
+      uuid: '00000000-0000-4000-8000-00000000abcd',
+    });
     expect(interpretarId('hola')).toBeNull();
     expect(interpretarId('')).toBeNull();
   });
 });
 
 const fecha = (d: string) => new Date(d);
+const uuidUsuario = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const uuidFamilia = (n: number) => `00000000-0000-4000-8001-${String(n).padStart(12, '0')}`;
 
 // padre 18 con dos hijos (20 niña, 21 joven) y familia 1; padre 30 pendiente sin familia
 const usuarios: FilaUsuarioBase[] = [
-  { id: 18, username: 'familia_prueba_1', email: 'p1@x.co', idrol: 3, estado: 1, fechadecreacion: fecha('2026-10-02'), cuentaComoHijo: null },
-  { id: 20, username: 'sofia', email: 'sofia@x.co', idrol: 4, estado: 1, fechadecreacion: fecha('2026-10-03'), cuentaComoHijo: { tipocuenta: 'NINO', alias: 'Sofía', estado: 'ACTIVA', idpadre: 18 } },
-  { id: 21, username: 'mateo', email: 'mateo@x.co', idrol: 4, estado: 1, fechadecreacion: fecha('2026-10-04'), cuentaComoHijo: { tipocuenta: 'JOVEN', alias: 'Mateo', estado: 'INACTIVA', idpadre: 18 } },
-  { id: 30, username: 'jorge', email: 'jorge@x.co', idrol: 4, estado: 1, fechadecreacion: fecha('2026-10-05'), cuentaComoHijo: null },
+  { id: 18, uuid: uuidUsuario(18), username: 'familia_prueba_1', email: 'p1@x.co', idrol: 3, estado: 1, fechadecreacion: fecha('2026-10-02'), cuentaComoHijo: null },
+  { id: 20, uuid: uuidUsuario(20), username: 'sofia', email: 'sofia@x.co', idrol: 4, estado: 1, fechadecreacion: fecha('2026-10-03'), cuentaComoHijo: { tipocuenta: 'NINO', alias: 'Sofía', estado: 'ACTIVA', idpadre: 18 } },
+  { id: 21, uuid: uuidUsuario(21), username: 'mateo', email: 'mateo@x.co', idrol: 4, estado: 1, fechadecreacion: fecha('2026-10-04'), cuentaComoHijo: { tipocuenta: 'JOVEN', alias: 'Mateo', estado: 'INACTIVA', idpadre: 18 } },
+  { id: 30, uuid: uuidUsuario(30), username: 'jorge', email: 'jorge@x.co', idrol: 4, estado: 1, fechadecreacion: fecha('2026-10-05'), cuentaComoHijo: null },
 ];
-const familias: FilaFamiliaBase[] = [{ id: 1, idpadre: 18, nombre: 'Familia Rodríguez' }];
+const familias: FilaFamiliaBase[] = [{ id: 1, uuid: uuidFamilia(1), idpadre: 18, nombre: 'Familia Rodríguez' }];
 
 describe('construirListaUsuarios', () => {
   it('calcula tipo, código, estado y familia de cada usuario', () => {
@@ -41,7 +51,7 @@ describe('construirListaUsuarios', () => {
     expect(porId[21]).toMatchObject({ codigo: 'USR-J-021', rol: 'JOVEN', estado: 'INACTIVA' });
     expect(porId[30]).toMatchObject({ rol: 'PADRE', estado: 'PENDIENTE', familia: null });
     // los hijos heredan la familia de su padre
-    expect(porId[20].familia).toEqual({ id: 1, codigo: 'FAM-001', nombre: 'Familia Rodríguez' });
+    expect(porId[20].familia).toEqual({ id: 1, uuid: uuidFamilia(1), codigo: 'FAM-001', nombre: 'Familia Rodríguez' });
   });
 
   it('ordena del más reciente al más antiguo', () => {
@@ -54,6 +64,21 @@ describe('construirListaUsuarios', () => {
     expect(construirListaUsuarios(usuarios, familias, { id: 'FAM-001' }).items.map((u) => u.id).sort()).toEqual([18, 20, 21]);
     expect(construirListaUsuarios(usuarios, familias, { id: '30' }).items.map((u) => u.id)).toEqual([30]);
     expect(construirListaUsuarios(usuarios, familias, { id: 'basura' }).total).toBe(0);
+  });
+
+  it('trae el uuid de cada usuario y de su familia', () => {
+    const { items } = construirListaUsuarios(usuarios, familias);
+    const porId = Object.fromEntries(items.map((u) => [u.id, u]));
+    expect(porId[20].uuid).toBe(uuidUsuario(20));
+    expect(porId[20].familia?.uuid).toBe(uuidFamilia(1));
+    expect(porId[30].familia).toBeNull();
+  });
+
+  it('filtra por UUID de usuario, de familia y en el filtro de familia', () => {
+    expect(construirListaUsuarios(usuarios, familias, { id: uuidUsuario(20) }).items.map((u) => u.id)).toEqual([20]);
+    expect(construirListaUsuarios(usuarios, familias, { id: uuidFamilia(1) }).items.map((u) => u.id).sort()).toEqual([18, 20, 21]);
+    expect(construirListaUsuarios(usuarios, familias, { familia: uuidFamilia(1) }).total).toBe(3);
+    expect(construirListaUsuarios(usuarios, familias, { id: '00000000-0000-4000-8000-999999999999' }).total).toBe(0);
   });
 
   it('filtra por rol, estado y familia', () => {

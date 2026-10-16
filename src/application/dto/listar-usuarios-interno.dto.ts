@@ -12,10 +12,13 @@ export class ListarUsuariosInternoDto {
   @MaxLength(100)
   q?: string;
 
-  @ApiPropertyOptional({ example: 'USR-N-032', description: 'ID del usuario (USR-P/N/J-000) o de la familia (FAM-000).' })
+  @ApiPropertyOptional({
+    example: 'USR-N-032',
+    description: 'ID del usuario o de la familia: UUID, código (USR-P/N/J-000, FAM-000) o número.',
+  })
   @IsOptional()
   @IsString()
-  @MaxLength(30)
+  @MaxLength(40)
   id?: string;
 
   @ApiPropertyOptional({ enum: ROLES_LMS_FILTRO })

@@ -7,13 +7,15 @@ export type EstadoUsuarioAdmin = 'ACTIVA' | 'PENDIENTE' | 'INACTIVA' | 'BLOQUEAD
 
 export interface UsuarioAdmin {
   id: number;
+  // ID público (UUID). El id numérico es interno.
+  uuid: string;
   codigo: string;
   tipo: TipoUsuario;
   rol: RolLms;
   nombre: string;
   email: string;
   estado: EstadoUsuarioAdmin;
-  familia: { id: number; codigo: string; nombre: string | null } | null;
+  familia: { id: number; uuid: string; codigo: string; nombre: string | null } | null;
   fechaRegistro: Date | null;
 }
 
@@ -27,6 +29,7 @@ export interface ListaUsuariosAdmin {
 // Filas tal como salen de la base, antes de calcular tipo, estado y códigos.
 export interface FilaUsuarioBase {
   id: number;
+  uuid: string;
   username: string;
   email: string;
   idrol: number | null;
@@ -42,6 +45,7 @@ export interface FilaUsuarioBase {
 
 export interface FilaFamiliaBase {
   id: number;
+  uuid: string;
   idpadre: number;
   nombre: string | null;
 }

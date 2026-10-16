@@ -44,6 +44,7 @@ function aUsuarioAdmin(fila: FilaUsuarioBase, familiaPorPadre: Map<number, FilaF
 
   return {
     id: fila.id,
+    uuid: fila.uuid,
     codigo: formatearIdUsuario(tipo, fila.id),
     tipo,
     rol: ROL_POR_TIPO[tipo],
@@ -51,7 +52,7 @@ function aUsuarioAdmin(fila: FilaUsuarioBase, familiaPorPadre: Map<number, FilaF
     email: fila.email,
     estado: estadoDe(fila),
     familia: familia
-      ? { id: familia.id, codigo: formatearIdFamilia(familia.id), nombre: familia.nombre }
+      ? { id: familia.id, uuid: familia.uuid, codigo: formatearIdFamilia(familia.id), nombre: familia.nombre }
       : null,
     fechaRegistro: fila.fechadecreacion,
   };
@@ -60,6 +61,7 @@ function aUsuarioAdmin(fila: FilaUsuarioBase, familiaPorPadre: Map<number, FilaF
 function coincideId(usuario: UsuarioAdmin, textoId: string): boolean {
   const buscado = interpretarId(textoId);
   if (!buscado) return false;
+  if (buscado.clase === 'UUID') return usuario.uuid === buscado.uuid || usuario.familia?.uuid === buscado.uuid;
   if (buscado.clase === 'FAMILIA') return usuario.familia?.id === buscado.id;
   return usuario.id === buscado.id && (!buscado.tipo || usuario.tipo === buscado.tipo);
 }
@@ -71,6 +73,7 @@ function coincideFamilia(usuario: UsuarioAdmin, texto: string): boolean {
   if (/^\d+$/.test(limpio)) return usuario.familia.id === Number(limpio);
   const buscado = interpretarId(limpio);
   if (buscado?.clase === 'FAMILIA') return usuario.familia.id === buscado.id;
+  if (buscado?.clase === 'UUID') return usuario.familia.uuid === buscado.uuid;
   return normalizar(usuario.familia.nombre ?? '').includes(normalizar(limpio));
 }
 
@@ -81,6 +84,7 @@ function coincideTexto(usuario: UsuarioAdmin, texto: string): boolean {
     usuario.nombre,
     usuario.email,
     usuario.codigo,
+    usuario.uuid,
     usuario.familia?.nombre ?? '',
     usuario.familia?.codigo ?? '',
   ];

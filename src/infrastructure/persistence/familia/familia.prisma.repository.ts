@@ -30,7 +30,7 @@ export class FamiliaPrismaRepository implements FamiliaRepository {
   async listarConMiembros(): Promise<FamiliaConMiembros[]> {
     const familias = await this.prisma.familia.findMany({
       orderBy: { id: 'asc' },
-      include: { padre: { select: { id: true, username: true, email: true } } },
+      include: { padre: { select: { id: true, uuid: true, username: true, email: true } } },
     });
     return this.conMiembros(familias);
   }
@@ -38,7 +38,7 @@ export class FamiliaPrismaRepository implements FamiliaRepository {
   async findConMiembrosPorPadre(idpadre: number): Promise<FamiliaConMiembros | null> {
     const familia = await this.prisma.familia.findUnique({
       where: { idpadre },
-      include: { padre: { select: { id: true, username: true, email: true } } },
+      include: { padre: { select: { id: true, uuid: true, username: true, email: true } } },
     });
     if (!familia) {
       return null;
@@ -53,8 +53,9 @@ export class FamiliaPrismaRepository implements FamiliaRepository {
     familias: {
       id: number;
       idpadre: number;
+      uuid: string;
       nombre: string | null;
-      padre: { id: number; username: string; email: string };
+      padre: { id: number; uuid: string; username: string; email: string };
     }[],
   ): Promise<FamiliaConMiembros[]> {
     if (familias.length === 0) {
@@ -66,11 +67,13 @@ export class FamiliaPrismaRepository implements FamiliaRepository {
         idpadre: { in: familias.map((f) => f.idpadre) },
         idusuario: { not: null },
       },
+      include: { usuarios: { select: { uuid: true } } },
       orderBy: { id: 'asc' },
     });
 
     return familias.map((f) => ({
       id: f.id,
+      uuid: f.uuid,
       codigo: formatearIdFamilia(f.id),
       nombre: f.nombre,
       padre: { ...f.padre, codigo: formatearIdUsuario('P', f.padre.id) },
@@ -79,6 +82,7 @@ export class FamiliaPrismaRepository implements FamiliaRepository {
         .map((c) => ({
           idcuenta: c.id,
           idusuario: c.idusuario as number,
+          uuid: c.usuarios?.uuid as string,
           codigo: formatearIdUsuario(c.tipocuenta === 'JOVEN' ? 'J' : 'N', c.idusuario as number),
           alias: c.alias,
           tipocuenta: c.tipocuenta,

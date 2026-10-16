@@ -17,6 +17,7 @@ export class UsuarioAdminPrismaRepository implements UsuarioAdminRepository {
       },
       select: {
         id: true,
+        uuid: true,
         username: true,
         email: true,
         idrol: true,
@@ -31,6 +32,7 @@ export class UsuarioAdminPrismaRepository implements UsuarioAdminRepository {
 
     return data.map((u) => ({
       id: u.id,
+      uuid: u.uuid,
       username: u.username,
       email: u.email,
       idrol: u.idrol,
@@ -48,6 +50,6 @@ export class UsuarioAdminPrismaRepository implements UsuarioAdminRepository {
   }
 
   async findFamilias(): Promise<FilaFamiliaBase[]> {
-    return this.prisma.familia.findMany({ select: { id: true, idpadre: true, nombre: true } });
+    return this.prisma.familia.findMany({ select: { id: true, uuid: true, idpadre: true, nombre: true } });
   }
 }

@@ -98,6 +98,7 @@ model rol {
 
 model usuarios {
   id                    Int                  @id @default(autoincrement())
+  uuid                  String               @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   username              String               @db.VarChar(50)
   email                 String               @unique @db.VarChar(150)
   auth_provider         String               @default("LOCAL") @db.VarChar(20)
@@ -259,6 +260,7 @@ model InvitacionFamiliar {
 
 model familia {
   id            Int      @id @default(autoincrement())
+  uuid          String   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   idpadre       Int      @unique
   nombre        String?  @db.VarChar(100)
   fechacreacion DateTime @default(now())

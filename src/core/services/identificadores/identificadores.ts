@@ -18,16 +18,24 @@ export function formatearIdFamilia(id: number): string {
 
 export type IdBuscado =
   | { clase: 'USUARIO'; id: number; tipo?: TipoUsuario }
-  | { clase: 'FAMILIA'; id: number };
+  | { clase: 'FAMILIA'; id: number }
+  | { clase: 'UUID'; uuid: string };
+
+const PATRON_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Interpreta lo que escribe el administrador en el filtro de ID.
- * Acepta "USR-N-032", "usr-n-32", "FAM-014", "fam14" o solo el número ("32", que se toma como usuario).
+ * Acepta "USR-N-032", "usr-n-32", "FAM-014", "fam14", un UUID completo o solo el número ("32", que se toma como usuario).
  * Devuelve null si no tiene forma de ID.
  */
 export function interpretarId(texto: string | undefined | null): IdBuscado | null {
   if (!texto) return null;
-  const limpio = texto.trim().toUpperCase().replace(/\s+/g, '');
+  const sinEspacios = texto.trim();
+  if (PATRON_UUID.test(sinEspacios)) {
+    return { clase: 'UUID', uuid: sinEspacios.toLowerCase() };
+  }
+
+  const limpio = sinEspacios.toUpperCase().replace(/\s+/g, '');
   if (!limpio) return null;
 
   const usuario = /^USR-?([PNJ])-?(\d+)$/.exec(limpio);
