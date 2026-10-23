@@ -1,11 +1,14 @@
 import {
+  Body,
   Controller,
   Get,
+  HttpCode,
   HttpException,
   HttpStatus,
   NotFoundException,
   Param,
   ParseIntPipe,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +19,8 @@ import { ListarFamiliasInternoUseCase } from 'src/application/use-cases/listar-f
 import { GetFamiliaInternoUseCase } from 'src/application/use-cases/get-familia-interno.use-case';
 import { ListarUsuariosInternoUseCase } from 'src/application/use-cases/listar-usuarios-interno.use-case';
 import { ListarUsuariosInternoDto } from 'src/application/dto/listar-usuarios-interno.dto';
+import { GeolocalizarIpDto } from 'src/application/dto/geolocalizar-ip.dto';
+import { GeolocalizarIpUseCase } from 'src/application/use-cases/geolocalizar-ip.use-case';
 
 @ApiTags('Internal')
 @ApiHeader({ name: 'x-internal-api-key', required: true, description: 'Clave compartida entre los servicios de Dicta.' })
@@ -27,7 +32,22 @@ export class InternalController {
     private readonly listarFamiliasInternoUseCase: ListarFamiliasInternoUseCase,
     private readonly getFamiliaInternoUseCase: GetFamiliaInternoUseCase,
     private readonly listarUsuariosInternoUseCase: ListarUsuariosInternoUseCase,
+    private readonly geolocalizarIpUseCase: GeolocalizarIpUseCase,
   ) {}
+
+  // POST y no GET: la IP es un dato personal y así no queda escrita en la URL ni en los registros de acceso.
+  @Post('geolocalizar')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Obtener país, ciudad y zona horaria de una IP, sin guardar nada (uso interno)' })
+  geolocalizar(@Body() dto: GeolocalizarIpDto) {
+    const result = this.geolocalizarIpUseCase.execute(dto.ip);
+
+    if (result.isFailure) {
+      throw new HttpException(result.error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return result.getValue();
+  }
 
   @Get('usuarios')
   @ApiOperation({
