@@ -31,6 +31,7 @@ import { UBICACION_USUARIO_REPOSITORY } from 'src/core/constants/constants';
 import { UbicacionUsuarioPrismaRepository } from 'src/infrastructure/persistence/ubicacion-usuario/ubicacion-usuario.prisma.repository';
 import { UbicacionUsuarioService } from 'src/core/services/ubicacion-usuario/ubicacion-usuario.service';
 import { GeoService } from 'src/core/services/geo/geo.service';
+import { GeolocalizarIpUseCase } from 'src/application/use-cases/geolocalizar-ip.use-case';
 import { FAMILIA_REPOSITORY } from 'src/core/constants/constants';
 import { FamiliaPrismaRepository } from 'src/infrastructure/persistence/familia/familia.prisma.repository';
 import { FamiliaService } from 'src/core/services/familia/familia.service';
@@ -81,6 +82,7 @@ import { ListarUsuariosInternoUseCase } from 'src/application/use-cases/listar-u
     },
     UbicacionUsuarioService,
     GeoService,
+    GeolocalizarIpUseCase,
     GetMiPerfilUseCase,
     {
       provide: FAMILIA_REPOSITORY,
