@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CuentaAsociadaService } from 'src/core/services/cuenta-asociada/cuenta-asociada.service';
+import { CursoAsignadoService } from 'src/core/services/curso-asignado/curso-asignado.service';
+import { FamiliaService } from 'src/core/services/familia/familia.service';
 import { InvitacionCursoService } from 'src/core/services/invitacion-curso/invitacion-curso.service';
 import { UsuariosService } from 'src/core/services/usuarios/usuarios.service';
 import { Result } from 'src/shared/domain/result/result';
@@ -11,6 +13,8 @@ export class AceptarInvitacionCursoUseCase {
     private readonly invitacionService: InvitacionCursoService,
     private readonly cuentaAsociadaService: CuentaAsociadaService,
     private readonly usuariosService: UsuariosService,
+    private readonly familiaService: FamiliaService,
+    private readonly cursoAsignadoService: CursoAsignadoService,
   ) {}
 
   async execute(dto: AceptarInvitacionCursoDto) {
@@ -40,7 +44,18 @@ export class AceptarInvitacionCursoUseCase {
       });
 
       await this.cuentaAsociadaService.asociarUsuario(invitacion.idCuentaAsociada, Number(nuevoUsuario.id));
+      await this.cuentaAsociadaService.cambiarEstado(invitacion.idCuentaAsociada, 'ACTIVA');
       await this.invitacionService.marcarAceptada(invitacion.id);
+
+      const idpadre = invitacion.cuentaAsociada?.idpadre;
+      if (idpadre) {
+        await this.familiaService.crearSiNoExiste(idpadre);
+      }
+
+      const yaAsignado = await this.cursoAsignadoService.buscarPorCuentaYCurso(invitacion.idCuentaAsociada, invitacion.cursoId);
+      if (!yaAsignado) {
+        await this.cursoAsignadoService.crear(invitacion.idCuentaAsociada, invitacion.cursoId);
+      }
 
       return Result.ok({
         usuario: {
