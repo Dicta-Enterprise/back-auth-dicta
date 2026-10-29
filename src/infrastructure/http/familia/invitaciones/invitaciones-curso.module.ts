@@ -2,12 +2,19 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import {
   CUENTA_ASOCIADA_REPOSITORY,
+  CURSO_ASIGNADO_REPOSITORY,
+  FAMILIA_REPOSITORY,
   INVITACION_CURSO_REPOSITORY,
 } from 'src/core/constants/constants';
 import { CuentaAsociadaPrismaRepository } from 'src/infrastructure/persistence/cuenta-asociada/cuenta-asociada.prisma.repository';
+import { CursoAsignadoPrismaRepository } from 'src/infrastructure/persistence/curso-asignado/curso-asignado.prisma.repository';
+import { FamiliaPrismaRepository } from 'src/infrastructure/persistence/familia/familia.prisma.repository';
 import { InvitacionCursoPrismaRepository } from 'src/infrastructure/persistence/invitacion-curso/invitacion-curso.prisma.repository';
 import { CuentaAsociadaService } from 'src/core/services/cuenta-asociada/cuenta-asociada.service';
+import { CursoAsignadoService } from 'src/core/services/curso-asignado/curso-asignado.service';
+import { FamiliaService } from 'src/core/services/familia/familia.service';
 import { InvitacionCursoService } from 'src/core/services/invitacion-curso/invitacion-curso.service';
+import { TransactionApiService } from 'src/core/services/transaction/transaction-api.service';
 import { PrismaService } from 'src/core/services/prisma/prisma.service';
 import { MailerModule } from 'src/core/services/mailer/mailer.module';
 import { AuthModule } from 'src/infrastructure/http/auth/auth.module';
@@ -32,8 +39,19 @@ import { InvitacionesCursoController } from './invitaciones-curso.controller';
       provide: INVITACION_CURSO_REPOSITORY,
       useClass: InvitacionCursoPrismaRepository,
     },
+    {
+      provide: FAMILIA_REPOSITORY,
+      useClass: FamiliaPrismaRepository,
+    },
+    {
+      provide: CURSO_ASIGNADO_REPOSITORY,
+      useClass: CursoAsignadoPrismaRepository,
+    },
     CuentaAsociadaService,
     InvitacionCursoService,
+    FamiliaService,
+    CursoAsignadoService,
+    TransactionApiService,
     PrismaService,
     EnviarInvitacionCursoUseCase,
     ReenviarInvitacionCursoUseCase,

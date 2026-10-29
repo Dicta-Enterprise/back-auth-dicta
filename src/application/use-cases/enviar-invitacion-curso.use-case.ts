@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { CuentaAsociadaService } from 'src/core/services/cuenta-asociada/cuenta-asociada.service';
 import { InvitacionCursoService } from 'src/core/services/invitacion-curso/invitacion-curso.service';
 import { MailerService } from 'src/core/services/mailer/mailer.service';
+import { TransactionApiService } from 'src/core/services/transaction/transaction-api.service';
 import { Result } from 'src/shared/domain/result/result';
 import { EnviarInvitacionCursoDto } from '../dto/enviar-invitacion-curso.dto';
 
@@ -15,6 +16,7 @@ export class EnviarInvitacionCursoUseCase {
     private readonly cuentaAsociadaService: CuentaAsociadaService,
     private readonly mailerService: MailerService,
     private readonly config: ConfigService,
+    private readonly transactionApiService: TransactionApiService,
   ) {}
 
   async execute(dto: EnviarInvitacionCursoDto, idpadre: number) {
@@ -22,6 +24,11 @@ export class EnviarInvitacionCursoUseCase {
       const cuenta = await this.cuentaAsociadaService.obtenerCuentaPorIdYPadre(dto.idCuentaAsociada, idpadre);
       if (!cuenta) {
         return Result.fail(new Error('Cuenta asociada no encontrada o no autorizada.'));
+      }
+
+      const cursosComprados = await this.transactionApiService.obtenerCursosComprados(idpadre);
+      if (!cursosComprados.includes(dto.cursoId)) {
+        return Result.fail(new Error('No has comprado este curso, no se puede enviar la invitación.'));
       }
 
       const invitacion = await this.invitacionService.crear({

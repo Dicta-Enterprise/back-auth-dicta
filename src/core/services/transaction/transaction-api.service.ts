@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { envs } from 'src/config/envs';
 
 interface OrdenIpResponse {
@@ -32,5 +32,23 @@ export class TransactionApiService {
       );
       return null;
     }
+  }
+
+  // Ids de los cursos que el usuario ya compró (órdenes pagadas). Si back-transaction no responde se lanza un error:
+  // no se debe dejar invitar a nadie con un curso que no se pudo comprobar que fue comprado.
+  async obtenerCursosComprados(idusuario: number): Promise<string[]> {
+    let response: Response;
+    try {
+      response = await fetch(`${this.baseUrl}/api/cursos/${idusuario}/comprados`);
+    } catch {
+      throw new InternalServerErrorException('Error consultando servicio de transacciones');
+    }
+
+    if (!response.ok) {
+      throw new InternalServerErrorException('Error consultando servicio de transacciones');
+    }
+
+    const body = await response.json();
+    return body?.data?.cursos ?? [];
   }
 }

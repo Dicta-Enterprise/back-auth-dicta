@@ -1,10 +1,13 @@
 import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpdateAliasCuentaAsociadaDto } from 'src/application/dto/update-alias-cuenta-asociada.dto';
+import { UpdateNombreFamiliaDto } from 'src/application/dto/update-nombre-familia.dto';
 import { DeleteCuentaFamiliarUseCase } from 'src/application/use-cases/delete-cuenta-familiar.use-case';
 import { GetCuentasFamiliaresUseCase } from 'src/application/use-cases/get-cuentas-familiares.use-case';
 import { GetDetalleCuentaFamiliarUseCase } from 'src/application/use-cases/get-detalle-cuenta-familiar.use-case';
+import { GetMiFamiliaUseCase } from 'src/application/use-cases/get-mi-familia.use-case';
 import { UpdateAliasCuentaFamiliarUseCase } from 'src/application/use-cases/update-alias-cuenta-familiar.use-case';
+import { UpdateNombreFamiliaUseCase } from 'src/application/use-cases/update-nombre-familia.use-case';
 import { CurrentUser } from 'src/shared/decorator/current-user.decorator';
 import { jwtAuthGuard } from 'src/shared/guard/jwtAuth.guard';
 
@@ -18,7 +21,47 @@ export class FamiliaController {
     private readonly getDetalleCuentaFamiliarUseCase: GetDetalleCuentaFamiliarUseCase,
     private readonly updateAliasCuentaFamiliarUseCase: UpdateAliasCuentaFamiliarUseCase,
     private readonly deleteCuentaFamiliarUseCase: DeleteCuentaFamiliarUseCase,
+    private readonly getMiFamiliaUseCase: GetMiFamiliaUseCase,
+    private readonly updateNombreFamiliaUseCase: UpdateNombreFamiliaUseCase,
   ) {}
+
+  @Get('info')
+  @ApiOperation({ summary: 'Obtener datos de mi familia', description: 'Obtiene el id, nombre y fecha de creación de la familia del padre autenticado.' })
+  @ApiResponse({ status: 200, description: 'Datos de la familia obtenidos con éxito.' })
+  @ApiResponse({ status: 404, description: 'Aún no tienes una familia creada.' })
+  async obtenerInfo(@CurrentUser() user) {
+    const idPadre = Number(user.sub);
+
+    const result = await this.getMiFamiliaUseCase.execute(idPadre);
+
+    if (result.isFailure) {
+      throw new HttpException(result.error.message, HttpStatus.NOT_FOUND);
+    }
+
+    return {
+      data: result.getValue(),
+      message: 'Datos de la familia obtenidos con éxito.',
+    };
+  }
+
+  @Patch('nombre')
+  @ApiOperation({ summary: 'Renombrar mi familia', description: 'Actualiza el nombre de la familia del padre autenticado.' })
+  @ApiResponse({ status: 200, description: 'Nombre de la familia actualizado con éxito.' })
+  @ApiResponse({ status: 404, description: 'Aún no tienes una familia creada.' })
+  async actualizarNombreFamilia(@Body() dto: UpdateNombreFamiliaDto, @CurrentUser() user) {
+    const idPadre = Number(user.sub);
+
+    const result = await this.updateNombreFamiliaUseCase.execute(idPadre, dto);
+
+    if (result.isFailure) {
+      throw new HttpException(result.error.message, HttpStatus.NOT_FOUND);
+    }
+
+    return {
+      data: result.getValue(),
+      message: 'Nombre de la familia actualizado con éxito.',
+    };
+  }
 
   @Get()
   @ApiOperation({ summary: 'Obtener cuentas familiares', description: 'Obtiene todas las cuentas familiares asociadas al padre autenticado.' })
