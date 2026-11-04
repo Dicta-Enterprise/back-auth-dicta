@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core/services/prisma/prisma.service';
 import { Usuario } from 'src/core/entities/auth/usuario.enity';
-import { UsuarioRepository } from 'src/core/repositories/usuario.repository';
+import { UsuarioBasico, UsuarioRepository } from 'src/core/repositories/usuario.repository';
 
 @Injectable()
 export class UsuarioPrismaRepository implements UsuarioRepository {
@@ -11,6 +11,8 @@ export class UsuarioPrismaRepository implements UsuarioRepository {
     const data= await this.prisma.usuarios.create({
     data: {
         username: usuario.username,
+        nombre: usuario.nombre ?? null,
+        apellido: usuario.apellido ?? null,
         email: usuario.email,
         auth_provider: usuario.authProvider,
         password: usuario.password,
@@ -106,12 +108,14 @@ async eliminarUsuario(id: number): Promise<void> {
   });
 }
 
-  async findById(id: number): Promise<{ id: number; username: string; email: string } | null> {
+  async findById(id: number): Promise<UsuarioBasico | null> {
     return this.prisma.usuarios.findUnique({
       where: { id },
       select: {
         id: true,
         username: true,
+        nombre: true,
+        apellido: true,
         email: true,
       },
     });

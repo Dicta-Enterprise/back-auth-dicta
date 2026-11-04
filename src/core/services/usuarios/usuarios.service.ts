@@ -1,6 +1,6 @@
 import { HttpStatus, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { USUARIO_REPOSITORY } from '../../constants/constants';
-import { UsuarioRepository } from '../../repositories/usuario.repository';
+import { UsuarioBasico, UsuarioRepository } from '../../repositories/usuario.repository';
 import { ValidatorService } from 'src/shared/application/validation/validator.service';
 import { RegisterUserDto } from 'src/application/dto/register-user.dto';
 import { Usuario } from '../../entities/auth/usuario.enity';
@@ -10,6 +10,7 @@ import { GoogleLoginDto } from 'src/application/dto/google-login.dto';
 import { MailerService } from 'src/core/services/mailer/mailer.service';
 import { ConfigService } from '@nestjs/config';
 import { ResetPasswordDto } from 'src/application/dto/reset-password.dto';
+import { nombreCompleto, nombreParaSaludo, resolverNombre } from './nombre-usuario';
 
 
 @Injectable()
@@ -34,6 +35,9 @@ export class UsuariosService {
       );
     }
 
+    // Se valida el nombre antes de tocar la base de datos o cifrar la contraseña.
+    const nombre = resolverNombre(dtoUsuario);
+
     const existeEmail = await this.repository.findByEmail(dtoUsuario.email);
     if (existeEmail) {
       throw new BussinesRuleException('El correo ya está registrado', HttpStatus.BAD_REQUEST);
@@ -44,7 +48,7 @@ export class UsuariosService {
 
     const usuario = new Usuario(
       null,
-      dtoUsuario.username,
+      nombre.username,
       dtoUsuario.email,
       hashedPassword,
       1,
@@ -54,22 +58,24 @@ export class UsuariosService {
       null,
       dtoUsuario.acceptTerms
     );
+    usuario.nombre = nombre.nombre;
+    usuario.apellido = nombre.apellido;
 
     const creado = await this.repository.create(usuario);
 
     try {
       await this.mailerService.crearContacto({
         email: creado.email,
-        nombre: creado.username,
+        nombre: nombreCompleto(creado),
       });
 
       await this.mailerService.enviar({
         to: creado.email,
-        nombreUsuario: creado.username,
-        subject: `¡Bienvenido a Dicta, ${creado.username}!`,
+        nombreUsuario: nombreParaSaludo(creado),
+        subject: `¡Bienvenido a Dicta, ${nombreParaSaludo(creado)}!`,
         templateId: this.config.get<number>('BREVO_TEMPLATE_BIENVENIDA'),
         context: {
-          nombreUsuario: creado.username,
+          nombreUsuario: nombreParaSaludo(creado),
           urlPlataforma: `${this.config.get('FRONTEND_URL', '')}/auth/login`,
           year: new Date().getFullYear(),
         },
@@ -93,9 +99,17 @@ export class UsuariosService {
       return existeGoogleId;
     }
 
+    // Google entrega nombre y apellido por separado; si traen algo raro, se usa el nombre completo que muestra Google.
+    let nombre;
+    try {
+      nombre = resolverNombre({ nombre: dto.nombre, apellido: dto.apellido, username: dto.username }, false);
+    } catch {
+      nombre = resolverNombre({ username: dto.username }, false);
+    }
+
     const usuario = new Usuario(
       null,
-      dto.username,
+      nombre.username,
       dto.email,
       null,
       1,
@@ -103,22 +117,24 @@ export class UsuariosService {
       'GOOGLE',
       dto.googleId,
     );
+    usuario.nombre = nombre.nombre;
+    usuario.apellido = nombre.apellido;
 
     const creado = await this.repository.create(usuario);
 
     try {
       await this.mailerService.crearContacto({
         email: creado.email,
-        nombre: creado.username,
+        nombre: nombreCompleto(creado),
       });
 
       await this.mailerService.enviar({
         to: creado.email,
-        nombreUsuario: creado.username,
-        subject: `¡Bienvenido a Dicta, ${creado.username}!`,
+        nombreUsuario: nombreParaSaludo(creado),
+        subject: `¡Bienvenido a Dicta, ${nombreParaSaludo(creado)}!`,
         templateId: this.config.get<number>('BREVO_TEMPLATE_BIENVENIDA'),
         context: {
-          nombreUsuario: creado.username,
+          nombreUsuario: nombreParaSaludo(creado),
           urlPlataforma: `${this.config.get('FRONTEND_URL', '')}/auth/login`,
           year: new Date().getFullYear(),
         },
@@ -183,11 +199,11 @@ async solicitarResetCodigo(email: string): Promise<void> {
   try {
     await this.mailerService.enviar({
       to: usuario.email,
-      nombreUsuario: usuario.username,
+      nombreUsuario: nombreParaSaludo(usuario),
       subject: 'Código para restablecer tu contraseña',
       templateId: this.config.get<number>('BREVO_TEMPLATE_RESET_PASSWORD'),
       context: {
-        nombreUsuario: usuario.username,
+        nombreUsuario: nombreParaSaludo(usuario),
         resetCode: code,
         year: new Date().getFullYear(),
       },
@@ -269,11 +285,11 @@ async enviarCodigoVerificacion(usuario: Usuario): Promise<void> {
   try {
     await this.mailerService.enviar({
       to: usuario.email,
-      nombreUsuario: usuario.username,
+      nombreUsuario: nombreParaSaludo(usuario),
       subject: 'Verifica tu correo electrónico',
       templateId: this.config.get<number>('BREVO_TEMPLATE_VERIFY_EMAIL'),
       context: {
-        nombreUsuario: usuario.username,
+        nombreUsuario: nombreParaSaludo(usuario),
         verifyCode: code,
         year: new Date().getFullYear(),
       },
@@ -328,7 +344,7 @@ async verificarEmail(email: string, code: string): Promise<void> {
   this.logger.log(`Correo verificado y cuenta activada para: ${email}`);
 }
 
-  async findById(id: number): Promise<{ id: number; username: string; email: string } | null> {
+  async findById(id: number): Promise<UsuarioBasico | null> {
     return this.repository.findById(id);
   }
 }

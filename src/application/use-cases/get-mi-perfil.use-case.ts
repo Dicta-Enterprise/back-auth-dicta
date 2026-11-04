@@ -6,6 +6,8 @@ import { Result } from 'src/shared/domain/result/result';
 export interface MiPerfilResult {
   id: number;
   username: string;
+  nombre: string | null;
+  apellido: string | null;
   email: string;
   ubicacion: {
     pais: { id: number; nombre: string } | null;
@@ -33,6 +35,8 @@ export class GetMiPerfilUseCase {
       return Result.ok<MiPerfilResult>({
         id: usuario.id,
         username: usuario.username,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
         email: usuario.email,
         ubicacion: ubicacion
           ? {
