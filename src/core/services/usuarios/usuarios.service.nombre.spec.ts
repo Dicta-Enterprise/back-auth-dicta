@@ -9,6 +9,7 @@ const datosBase = { email: 'ana@gmail.com', password: 'Clave1234!', confirmPassw
 function crear() {
   const repository = {
     findByEmail: jest.fn().mockResolvedValue(null),
+    findByGoogleId: jest.fn().mockResolvedValue(null),
     create: jest.fn().mockImplementation(async (u: Usuario) => Object.assign(new Usuario(u.id, u.username, u.email, u.password, u.estado, u.fechadecreacion), { id: '7', nombre: u.nombre, apellido: u.apellido })),
     saveVerifyCode: jest.fn().mockResolvedValue(undefined),
   };
@@ -72,7 +73,6 @@ describe('UsuariosService.crearUsuarioGoogle (nombre y apellido)', () => {
 
   it('usa el nombre y el apellido que entrega Google', async () => {
     const { service, repository } = crear();
-    repository.findByGoogleId = jest.fn().mockResolvedValue(null);
     await service.crearUsuarioGoogle({ ...google, nombre: 'Ana', apellido: 'Pérez' } as never);
 
     expect(repository.create.mock.calls[0][0]).toMatchObject({ nombre: 'Ana', apellido: 'Pérez', username: 'Ana Pérez' });
@@ -80,15 +80,13 @@ describe('UsuariosService.crearUsuarioGoogle (nombre y apellido)', () => {
 
   it('si Google no separa nombre y apellido, usa el nombre completo que muestra', async () => {
     const { service, repository } = crear();
-    repository.findByGoogleId = jest.fn().mockResolvedValue(null);
     await service.crearUsuarioGoogle(google as never);
 
     expect(repository.create.mock.calls[0][0]).toMatchObject({ nombre: 'Ana Pérez', apellido: null, username: 'Ana Pérez' });
   });
 
   it('si Google trae un nombre con caracteres raros, no se rompe el ingreso', async () => {
-    const { service, repository } = crear();
-    repository.findByGoogleId = jest.fn().mockResolvedValue(null);
+    const { service } = crear();
     await expect(service.crearUsuarioGoogle({ ...google, nombre: 'Ana 😀', apellido: 'Pérez' } as never)).resolves.toBeDefined();
   });
 });
