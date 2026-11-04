@@ -99,6 +99,9 @@ model rol {
 model usuarios {
   id                    Int                  @id @default(autoincrement())
   username              String               @db.VarChar(50)
+  // Nombre y apellido del usuario. "username" se mantiene por compatibilidad (back-transaction, back-nest y los correos lo leen).
+  nombre                String?              @db.VarChar(80)
+  apellido              String?              @db.VarChar(80)
   email                 String               @unique @db.VarChar(150)
   auth_provider         String               @default("LOCAL") @db.VarChar(20)
   password              String?              @db.VarChar(255)

@@ -32,6 +32,8 @@ export class AceptarInvitacionCursoUseCase {
       }
 
       const nuevoUsuario = await this.usuariosService.crearUsuario({
+        nombre: dto.nombre,
+        apellido: dto.apellido,
         username: dto.username,
         email: invitacion.correo,
         password: dto.password,
@@ -46,6 +48,8 @@ export class AceptarInvitacionCursoUseCase {
         usuario: {
           id: nuevoUsuario.id,
           username: nuevoUsuario.username,
+          nombre: nuevoUsuario.nombre,
+          apellido: nuevoUsuario.apellido,
           email: nuevoUsuario.email,
         },
         idCuentaAsociada: invitacion.idCuentaAsociada,

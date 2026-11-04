@@ -52,6 +52,8 @@ export class AuthController {
         return{
             data: {
                 username: usuario.username,
+                nombre: usuario.nombre,
+                apellido: usuario.apellido,
                 email: usuario.email
             },
             message: 'Usuario registrado'
