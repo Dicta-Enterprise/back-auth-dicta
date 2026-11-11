@@ -15,7 +15,9 @@ export class Usuario {
     public resetAttempts?: number,
     public verifyCode?: string | null,
     public verifyCodeExpires?: Date | null,
-    public verifyAttempts?: number, 
+    public verifyAttempts?: number,
+    public nombre?: string | null,
+    public apellido?: string | null,
   ) {}
 
   static fromPrisma(data: unknown): Usuario {
@@ -36,6 +38,8 @@ export class Usuario {
       verify_code?: string | null;
       verify_code_expires?: Date | null;
       verify_attempts?: number;
+      nombre?: string | null;
+      apellido?: string | null;
     };
 
     return new Usuario(
@@ -55,6 +59,8 @@ export class Usuario {
       u.verify_code,
       u.verify_code_expires,
       u.verify_attempts,
+      u.nombre,
+      u.apellido,
     );
   }
 }

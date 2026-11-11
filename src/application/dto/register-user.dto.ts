@@ -4,6 +4,8 @@ import {
   IsBoolean,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
+  IsString,
   IsStrongPassword,
   MaxLength,
   MinLength,
@@ -12,16 +14,32 @@ import { IsAllowedEmail } from 'src/shared/decorator/is-allowed-email.decorator'
 
 
 export class RegisterUserDto {
+  @ApiProperty({ example: 'Ana', description: 'Nombre (2 a 80 letras)', minLength: 2, maxLength: 80, required: false })
+  @IsOptional()
+  @IsString({ message: 'El nombre debe ser texto' })
+  @MinLength(2, { message: 'El nombre debe tener mínimo 2 caracteres' })
+  @MaxLength(80, { message: 'El nombre debe tener máximo 80 caracteres' })
+  nombre?: string;
+
+  @ApiProperty({ example: 'Pérez', description: 'Apellido (hasta 80 letras)', maxLength: 80, required: false })
+  @IsOptional()
+  @IsString({ message: 'El apellido debe ser texto' })
+  @MaxLength(80, { message: 'El apellido debe tener máximo 80 caracteres' })
+  apellido?: string;
+
   @ApiProperty({
     example: 'Jose',
-    description: 'Nombre de usuario (3 a 50 caracteres)',
+    description: 'OBSOLETO: solo para clientes antiguos que todavía no mandan nombre y apellido (3 a 50 caracteres)',
     minLength: 3,
     maxLength: 50,
+    required: false,
+    deprecated: true,
   })
-  @IsNotEmpty({ message: 'El username es requerido' })
+  @IsOptional()
+  @IsString({ message: 'El username debe ser texto' })
   @MinLength(3, { message: 'El username debe tener mínimo 3 caracteres' })
   @MaxLength(50, { message: 'El username debe tener máximo 50 caracteres' })
-  username: string;
+  username?: string;
 
   @ApiProperty({
     example: 'jose@gmail.com',
