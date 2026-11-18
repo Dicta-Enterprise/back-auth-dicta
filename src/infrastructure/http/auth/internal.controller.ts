@@ -9,6 +9,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -21,6 +22,8 @@ import { ListarUsuariosInternoUseCase } from 'src/application/use-cases/listar-u
 import { ListarUsuariosInternoDto } from 'src/application/dto/listar-usuarios-interno.dto';
 import { GeolocalizarIpDto } from 'src/application/dto/geolocalizar-ip.dto';
 import { GeolocalizarIpUseCase } from 'src/application/use-cases/geolocalizar-ip.use-case';
+import { ActualizarTipoUsuarioFamiliaDto } from 'src/application/dto/actualizar-tipo-usuario-familia.dto';
+import { ActualizarTipoUsuarioFamiliaUseCase } from 'src/application/use-cases/actualizar-tipo-usuario-familia.use-case';
 
 @ApiTags('Internal')
 @ApiHeader({ name: 'x-internal-api-key', required: true, description: 'Clave compartida entre los servicios de Dicta.' })
@@ -33,6 +36,7 @@ export class InternalController {
     private readonly getFamiliaInternoUseCase: GetFamiliaInternoUseCase,
     private readonly listarUsuariosInternoUseCase: ListarUsuariosInternoUseCase,
     private readonly geolocalizarIpUseCase: GeolocalizarIpUseCase,
+    private readonly actualizarTipoUsuarioFamiliaUseCase: ActualizarTipoUsuarioFamiliaUseCase,
   ) {}
 
   // POST y no GET: la IP es un dato personal y así no queda escrita en la URL ni en los registros de acceso.
@@ -85,6 +89,24 @@ export class InternalController {
     }
 
     return result.getValue();
+  }
+
+  @Put('familias/padre/:idpadre/tipo-usuario')
+  @ApiOperation({
+    summary: 'Marcar la familia de un padre como FREE o PREMIUM según sus compras (lo llama back-transaction)',
+  })
+  async actualizarTipoUsuario(
+    @Param('idpadre', ParseIntPipe) idpadre: number,
+    @Body() dto: ActualizarTipoUsuarioFamiliaDto,
+  ) {
+    const result = await this.actualizarTipoUsuarioFamiliaUseCase.execute(idpadre, dto.tipoUsuario);
+
+    if (result.isFailure) {
+      throw new HttpException(result.error.message, HttpStatus.NOT_FOUND);
+    }
+
+    const familia = result.getValue();
+    return { idpadre: familia.idpadre, tipoUsuario: familia.tipoUsuario };
   }
 
   @Get('familias/padre/:idpadre')

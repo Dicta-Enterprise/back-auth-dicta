@@ -40,6 +40,7 @@ import { GetFamiliaInternoUseCase } from 'src/application/use-cases/get-familia-
 import { USUARIO_ADMIN_REPOSITORY } from 'src/core/constants/constants';
 import { UsuarioAdminPrismaRepository } from 'src/infrastructure/persistence/usuario-admin/usuario-admin.prisma.repository';
 import { ListarUsuariosInternoUseCase } from 'src/application/use-cases/listar-usuarios-interno.use-case';
+import { ActualizarTipoUsuarioFamiliaUseCase } from 'src/application/use-cases/actualizar-tipo-usuario-familia.use-case';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { ListarUsuariosInternoUseCase } from 'src/application/use-cases/listar-u
     FamiliaService,
     ListarFamiliasInternoUseCase,
     GetFamiliaInternoUseCase,
+    ActualizarTipoUsuarioFamiliaUseCase,
     {
       provide: USUARIO_ADMIN_REPOSITORY,
       useClass: UsuarioAdminPrismaRepository,

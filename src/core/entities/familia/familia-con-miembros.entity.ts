@@ -17,6 +17,8 @@ export interface FamiliaConMiembros {
   // Código legible de la familia: FAM-001.
   codigo: string;
   nombre: string | null;
+  // PREMIUM si el padre ya tiene una compra completada; FREE si no. Los hijos toman el de su familia.
+  tipoUsuario: 'FREE' | 'PREMIUM';
   padre: {
     id: number;
     // ID público (UUID) del padre.

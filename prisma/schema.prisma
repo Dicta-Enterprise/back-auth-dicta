@@ -265,6 +265,10 @@ model familia {
   nombre        String?  @db.VarChar(100)
   fechacreacion DateTime @default(now())
 
+  // FREE hasta que el padre tenga al menos una compra COMPLETADA; entonces PREMIUM. Lo mantiene back-transaction
+  // (avisa por el endpoint interno cada vez que cambia el estado de una orden).
+  tipo_usuario String @default("FREE") @db.VarChar(10)
+
   padre usuarios @relation(fields: [idpadre], references: [id], onDelete: Cascade, map: "fk_familia_padre")
 }
 

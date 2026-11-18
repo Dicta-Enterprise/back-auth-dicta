@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { FAMILIA_REPOSITORY } from 'src/core/constants/constants';
-import { Familia } from 'src/core/entities/familia/familia.entity';
+import { Familia, TipoUsuarioFamilia } from 'src/core/entities/familia/familia.entity';
 import { FamiliaConMiembros } from 'src/core/entities/familia/familia-con-miembros.entity';
 import { FamiliaRepository } from 'src/core/repositories/familia.repository';
 
@@ -25,6 +25,10 @@ export class FamiliaService {
 
   async actualizarNombre(idpadre: number, nombre: string): Promise<Familia> {
     return this.repository.actualizarNombre(idpadre, nombre);
+  }
+
+  async actualizarTipoUsuario(idpadre: number, tipoUsuario: TipoUsuarioFamilia): Promise<Familia | null> {
+    return this.repository.actualizarTipoUsuario(idpadre, tipoUsuario);
   }
 
   async listarConMiembros(): Promise<FamiliaConMiembros[]> {

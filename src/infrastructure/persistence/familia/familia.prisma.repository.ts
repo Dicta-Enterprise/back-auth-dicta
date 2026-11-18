@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Familia } from 'src/core/entities/familia/familia.entity';
+import { Familia, TipoUsuarioFamilia } from 'src/core/entities/familia/familia.entity';
 import { FamiliaConMiembros } from 'src/core/entities/familia/familia-con-miembros.entity';
 import { FamiliaRepository } from 'src/core/repositories/familia.repository';
 import { formatearIdFamilia, formatearIdUsuario } from 'src/core/services/identificadores/identificadores';
@@ -25,6 +25,15 @@ export class FamiliaPrismaRepository implements FamiliaRepository {
       data: { nombre },
     });
     return Familia.fromPrisma(data);
+  }
+
+  // Devuelve null si ese padre todavía no tiene familia (no se crea una solo por comprar).
+  async actualizarTipoUsuario(idpadre: number, tipoUsuario: TipoUsuarioFamilia): Promise<Familia | null> {
+    const resultado = await this.prisma.familia.updateMany({ where: { idpadre }, data: { tipo_usuario: tipoUsuario } });
+    if (resultado.count === 0) {
+      return null;
+    }
+    return this.findByPadre(idpadre);
   }
 
   async listarConMiembros(): Promise<FamiliaConMiembros[]> {
@@ -55,6 +64,7 @@ export class FamiliaPrismaRepository implements FamiliaRepository {
       idpadre: number;
       uuid: string;
       nombre: string | null;
+      tipo_usuario: string;
       padre: { id: number; uuid: string; username: string; email: string };
     }[],
   ): Promise<FamiliaConMiembros[]> {
@@ -76,6 +86,7 @@ export class FamiliaPrismaRepository implements FamiliaRepository {
       uuid: f.uuid,
       codigo: formatearIdFamilia(f.id),
       nombre: f.nombre,
+      tipoUsuario: f.tipo_usuario === 'PREMIUM' ? 'PREMIUM' : 'FREE',
       padre: { ...f.padre, codigo: formatearIdUsuario('P', f.padre.id) },
       miembros: cuentas
         .filter((c) => c.idpadre === f.idpadre)
