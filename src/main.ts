@@ -7,6 +7,22 @@ import { apiReference } from '@scalar/nestjs-api-reference';
 import * as cookieParser from 'cookie-parser';
 
 
+// Orígenes que pueden llamar a esta API desde el navegador (el panel de administración, el sitio público...).
+// El panel en desarrollo corre en http://localhost:4200; se pueden sumar más con CORS_ORIGINS (separados por comas).
+const ORIGENES_POR_DEFECTO = [
+  'https://localhost:58863',
+  'https://localhost:4200',
+  'http://localhost:4200',
+];
+
+function origenesPermitidos(): string[] {
+  const extra = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  return [...new Set([...ORIGENES_POR_DEFECTO, ...extra])];
+}
+
 async function bootstrap() {
   const logger = new Logger('API');
 
@@ -16,11 +32,7 @@ async function bootstrap() {
   app.use(cookieParser());
   
 app.enableCors({
-    origin: [
-    'https://localhost:58863',
-    'https://localhost:4200',
-    
-    ],
+    origin: origenesPermitidos(),
     credentials: true,
     methods: 'GET,PUT,POST,DELETE,PATCH',
   }); 
